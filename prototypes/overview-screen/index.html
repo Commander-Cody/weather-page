@@ -3,126 +3,128 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PROTOTYPE round 2 — fused overview screen (issue #6)</title>
+<title>PROTOTYPE round 3 — fused overview screen (issue #6)</title>
 <!--
-  THROWAWAY PROTOTYPE, ROUND 2, for issue #6.
-  Round 1 offered three shapes; stacked lanes won and the other two are gone.
-  This round fixes what was wrong with it and varies only the open question:
-  how the lanes are separated from each other.
+  THROWAWAY PROTOTYPE, ROUND 3, for issue #6.
 
-  Fixed since round 1 (all three variants share these):
-    - the "now" block is WEATHER first: temperature and a condition icon lead,
-      wind / water / rain are the second row
-    - temperature is its own aligned lane, so it lines up with the rest
-    - EVERY lane shows the same 6 h of past, not just the tide
-    - the bottom table is gone, replaced by a compact day strip.
-      Press W to hide the strip and judge the page without it.
+  Round 2 picked the tinted-band lanes. The other two separations are gone.
+  This round applies the round-2 feedback and leaves exactly two things open,
+  because they are choices rather than fixes:
 
-  Varying: 1 boxed lanes / 2 tinted bands / 3 one lane big, rest as strips.
+    variant 1 / 2  -> scale column on the LEFT or on the RIGHT
+    D key          -> water datum: absolute cm above gauge zero, or
+                      deviation from mean high / low water
+
+  Applied from round 2:
+    - past window 6 h -> 3 h
+    - every lane has the same scale treatment: a fixed column of tick numbers
+      that does NOT scroll away, with the unit on the top tick
+    - a day pill that tells you which day you have scrolled to; muted at rest,
+      solid once you scroll
+    - humidity added to the now block, deliberately quiet
+    - search / change place and menu buttons in the header
+    - kept: gust ribbon, shaded area between astronomical and expected tide,
+      temperature numbers at intervals, numbers at high and low water,
+      the day-card strip
 
   Data is FAKE, shaped like the real series. Storm at +34 h.
-  Press L to reveal placeholder labels.
+  L reveals labels · W hides the day strip · D switches the water datum.
 -->
 <style>
   :root {
-    --bg: #f4f5f7; --card: #fff; --ink: #14181f; --ink-2: #5b6472; --ink-3: #9aa3b0;
-    --line: #e3e6eb; --nodata: #c6ccd6; --night: #e9edf3;
-    --temp: #c2622f; --temp-soft: #f0d9c9;
-    --wind: #43518a; --wind-soft: #c0c8e0;
-    --rain: #2f7fc4; --rain-soft: #cfe3f3;
-    --sea:  #0f6b6b; --sea-soft:  #b6d8d8;
-    --astro:#8d98a6; --surge: #d1683a;
+    --bg:#f4f5f7; --card:#fff; --ink:#14181f; --ink-2:#5b6472; --ink-3:#9aa3b0;
+    --line:#e3e6eb; --nodata:#c6ccd6; --night:#e9edf3;
+    --temp:#c2622f; --temp-soft:#f2ddce;
+    --wind:#43518a; --wind-soft:#c4cbe2;
+    --rain:#2f7fc4; --rain-soft:#cfe3f3;
+    --sea:#0f6b6b;  --sea-soft:#bcdcdc;
+    --astro:#8d98a6; --surge:#d1683a;
   }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; padding:0; }
   body {
-    background: #2a2e35; color: var(--ink);
-    font: 15px/1.35 -apple-system, "Segoe UI", Roboto, system-ui, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    padding: 24px 12px 110px; display: flex; justify-content: center;
+    background:#2a2e35; color:var(--ink);
+    font:15px/1.35 -apple-system,"Segoe UI",Roboto,system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding:24px 12px 110px; display:flex; justify-content:center;
   }
-  #phone {
-    width: 390px; min-height: 800px; background: var(--bg);
-    border-radius: 26px; overflow: hidden; position: relative;
-    box-shadow: 0 18px 50px rgba(0,0,0,.45);
+  #phone { width:390px; min-height:800px; background:var(--bg); border-radius:26px; overflow:hidden; position:relative; box-shadow:0 18px 50px rgba(0,0,0,.45); }
+  #fold { position:absolute; left:0; right:0; top:700px; border-top:1px dashed rgba(210,60,60,.5); pointer-events:none; z-index:6; }
+  #fold::after { content:"fold — 390×700"; position:absolute; right:6px; top:3px; font:9px/1 ui-monospace,monospace; color:rgba(210,60,60,.7); }
+
+  .pad { padding:0 14px; }
+  .card { background:var(--card); border-radius:14px; padding:12px; margin-bottom:10px; }
+  .tiny { font-size:11px; }
+  .mono { font-variant-numeric:tabular-nums; font-feature-settings:"tnum"; }
+
+  .ph { position:relative; white-space:nowrap; }
+  body:not(.reveal) .ph { color:transparent !important; }
+  body:not(.reveal) .ph::before { content:""; position:absolute; left:0; top:14%; right:0; bottom:16%; background:#8b95a4; opacity:.34; border-radius:3px; }
+  body.hide-week .weekblock { display:none; }
+
+  /* ---- header ---- */
+  header { padding:13px 14px 6px; display:flex; align-items:flex-start; gap:10px; }
+  .place { font-size:22px; font-weight:650; letter-spacing:-.01em; }
+  .place-sub { font-size:12px; color:var(--ink-3); margin-top:1px; }
+  .hbtns { margin-left:auto; display:flex; gap:6px; flex:none; }
+  .hbtn {
+    width:34px; height:34px; border-radius:10px; background:var(--card);
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    border:1px solid var(--line);
   }
-  #fold { position: absolute; left: 0; right: 0; top: 700px; border-top: 1px dashed rgba(210,60,60,.5); pointer-events: none; z-index: 5; }
-  #fold::after { content: "fold — 390×700"; position: absolute; right: 6px; top: 3px; font: 9px/1 ui-monospace, monospace; color: rgba(210,60,60,.7); }
 
-  .pad { padding: 0 14px; }
-  .card { background: var(--card); border-radius: 14px; padding: 12px; margin-bottom: 10px; }
-  .muted { color: var(--ink-2); }
-  .tiny { font-size: 11px; }
-  .mono { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+  /* ---- now block: weather first ---- */
+  .now { display:flex; align-items:center; gap:10px; padding:2px 2px 12px; }
+  .now .t { font-size:52px; font-weight:300; line-height:.92; letter-spacing:-.03em; }
+  .now .t sup { font-size:22px; font-weight:400; vertical-align:top; top:.35em; position:relative; }
+  .now .cond { font-size:12px; color:var(--ink-2); margin-top:3px; }
+  .rt { text-align:right; }
+  .rt .hl { font-size:15px; }
+  .hum { display:flex; align-items:center; justify-content:flex-end; gap:3px; font-size:11px; color:var(--ink-3); margin-top:5px; }
+  .secondary { display:flex; gap:6px; }
+  .sec { flex:1; background:var(--card); border-radius:12px; padding:8px 7px; min-width:0; }
+  .sec .v { font-size:17px; font-weight:620; line-height:1.05; white-space:nowrap; }
+  .sec .u { font-size:10px; color:var(--ink-3); font-weight:400; }
+  .sec .k { font-size:10px; margin-top:3px; display:flex; align-items:center; gap:3px; }
 
-  .ph { position: relative; white-space: nowrap; }
-  body:not(.reveal) .ph { color: transparent !important; }
-  body:not(.reveal) .ph::before {
-    content: ""; position: absolute; left: 0; top: 14%; right: 0; bottom: 16%;
-    background: #8b95a4; opacity: .34; border-radius: 3px;
+  /* ---- chart ---- */
+  .chartcard { padding:8px 8px 6px; position:relative; }
+  .chartwrap { display:flex; align-items:stretch; }
+  .chartwrap.right { flex-direction:row-reverse; }
+  .scaleCol { width:38px; flex:none; position:relative; }
+  .chartwrap:not(.right) .scaleCol { padding-right:4px; }
+  .chartwrap.right .scaleCol { padding-left:4px; }
+  .scroller { overflow-x:auto; overflow-y:hidden; flex:1; -webkit-overflow-scrolling:touch; }
+  .scroller::-webkit-scrollbar { height:4px; }
+  .scroller::-webkit-scrollbar-thumb { background:var(--ink-3); border-radius:2px; }
+
+  .charthead { display:flex; align-items:center; height:19px; margin-bottom:3px; }
+  #daypill {
+    border-radius:999px; padding:1px 8px; font-size:10.5px; color:var(--ink-2);
+    display:flex; gap:5px; align-items:baseline; background:var(--bg);
+    opacity:.4; transition:opacity .18s, background .18s;
   }
-  body.hide-week .weekblock { display: none; }
-
-  header { padding: 14px 14px 8px; }
-  .place { font-size: 22px; font-weight: 650; letter-spacing: -.01em; }
-  .place-sub { font-size: 12px; color: var(--ink-3); margin-top: 1px; }
-
-  /* ---- the now block. weather leads, wind and water follow. ---- */
-  .now { display: flex; align-items: center; gap: 12px; padding: 4px 2px 12px; }
-  .now .t { font-size: 52px; font-weight: 300; line-height: .92; letter-spacing: -.03em; }
-  .now .t sup { font-size: 22px; font-weight: 400; vertical-align: top; top: .35em; position: relative; }
-  .now .cond { font-size: 12px; color: var(--ink-2); margin-top: 3px; }
-  .secondary { display: flex; gap: 6px; }
-  .sec { flex: 1; background: var(--card); border-radius: 12px; padding: 8px 7px; min-width: 0; }
-  .sec .v { font-size: 17px; font-weight: 620; line-height: 1.05; white-space: nowrap; }
-  .sec .u { font-size: 10px; color: var(--ink-3); font-weight: 400; }
-  .sec .k { font-size: 10px; margin-top: 3px; display: flex; align-items: center; gap: 3px; }
-
-  /* ---- chart: fixed label gutter + horizontally scrolling lanes ---- */
-  .chartwrap { display: flex; align-items: stretch; }
-  .gutter { width: 48px; flex: none; }
-  .gcell { display: flex; flex-direction: column; justify-content: center; padding-left: 2px; }
-  .gcell .n { font-size: 10px; font-weight: 600; color: var(--ink-2); line-height: 1.1; }
-  .gcell .v { font-size: 13px; font-weight: 650; line-height: 1.15; }
-  .scroller { overflow-x: auto; overflow-y: hidden; flex: 1; -webkit-overflow-scrolling: touch; }
-  .scroller::-webkit-scrollbar { height: 4px; }
-  .scroller::-webkit-scrollbar-thumb { background: var(--ink-3); border-radius: 2px; }
-  .laneboxes > div { border: 1px solid var(--line); border-radius: 10px; background: #fff; margin-bottom: 5px; overflow: hidden; }
-
-  .tabs { display: flex; gap: 4px; margin-bottom: 8px; }
-  .tabs button {
-    flex: 1; border: 1px solid var(--line); background: #fff; border-radius: 9px;
-    padding: 5px 2px; font: inherit; font-size: 10px; cursor: pointer; color: var(--ink-2);
-    display: flex; flex-direction: column; align-items: center; gap: 2px;
-  }
-  .tabs button.on { background: var(--ink); border-color: var(--ink); color: #fff; }
-  .tabs button b { font-size: 13px; font-weight: 650; }
+  #daypill.on { opacity:1; background:var(--line); }
 
   /* ---- day strip ---- */
-  .daystrip { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
-  .day { flex: none; width: 62px; background: var(--bg); border-radius: 11px; padding: 8px 4px; text-align: center; }
-  .day .dl { font-size: 10px; font-weight: 600; }
-  .day .dd { font-size: 9.5px; color: var(--ink-3); }
-  .day .tm { font-size: 13px; font-weight: 650; margin-top: 2px; }
-  .day .tn { font-size: 10.5px; color: var(--ink-3); }
+  .daystrip { display:flex; gap:6px; overflow-x:auto; padding-bottom:4px; }
+  .day { flex:none; width:62px; background:var(--bg); border-radius:11px; padding:8px 4px; text-align:center; }
+  .day .dl { font-size:10px; font-weight:600; }
+  .day .dd { font-size:9.5px; color:var(--ink-3); }
+  .day .tm { font-size:13px; font-weight:650; margin-top:2px; }
+  .day .tn { font-size:10.5px; color:var(--ink-3); }
 
-  svg { display: block; }
+  svg { display:block; }
 
-  #bar {
-    position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%);
-    display: flex; background: #10131a; color: #fff; border-radius: 999px;
-    box-shadow: 0 8px 28px rgba(0,0,0,.5); z-index: 100; overflow: hidden;
-    border: 1px solid rgba(255,255,255,.14);
-    font: 13px/1 -apple-system, "Segoe UI", Roboto, sans-serif;
-  }
-  #bar button { background: none; border: 0; color: #fff; cursor: pointer; padding: 0 15px; font-size: 15px; display: flex; align-items: center; }
-  #bar button:hover { background: rgba(255,255,255,.12); }
-  #bar .name { padding: 12px 10px; min-width: 236px; text-align: center; display: flex; flex-direction: column; gap: 3px; justify-content: center; }
-  #bar .name b { font-size: 13px; font-weight: 600; }
-  #bar .name span { font-size: 10px; opacity: .55; letter-spacing: .04em; text-transform: uppercase; }
-  #bar .sep { width: 1px; background: rgba(255,255,255,.16); }
-  #bar .tag { position: absolute; top: -9px; left: 50%; transform: translateX(-50%); background: #d1683a; color: #fff; font-size: 9px; font-weight: 700; letter-spacing: .1em; padding: 2px 8px; border-radius: 999px; }
-  #bar button.on { background: rgba(255,255,255,.22); }
+  #bar { position:fixed; left:50%; bottom:18px; transform:translateX(-50%); display:flex; background:#10131a; color:#fff; border-radius:999px; box-shadow:0 8px 28px rgba(0,0,0,.5); z-index:100; overflow:hidden; border:1px solid rgba(255,255,255,.14); font:13px/1 -apple-system,"Segoe UI",Roboto,sans-serif; }
+  #bar button { background:none; border:0; color:#fff; cursor:pointer; padding:0 14px; font-size:15px; display:flex; align-items:center; }
+  #bar button:hover { background:rgba(255,255,255,.12); }
+  #bar button.on { background:rgba(255,255,255,.22); }
+  #bar .name { padding:12px 10px; min-width:212px; text-align:center; display:flex; flex-direction:column; gap:3px; justify-content:center; }
+  #bar .name b { font-size:13px; font-weight:600; }
+  #bar .name span { font-size:10px; opacity:.55; letter-spacing:.04em; text-transform:uppercase; }
+  #bar .sep { width:1px; background:rgba(255,255,255,.16); }
+  #bar .tag { position:absolute; top:-9px; left:50%; transform:translateX(-50%); background:#d1683a; color:#fff; font-size:9px; font-weight:700; letter-spacing:.1em; padding:2px 8px; border-radius:999px; }
 </style>
 </head>
 <body>
@@ -130,177 +132,162 @@
 <div id="phone"><div id="fold"></div><div id="app"></div></div>
 
 <div id="bar">
-  <div class="tag">PROTOTYPE · ROUND 2</div>
-  <button id="prev" title="previous variant (←)">◀</button>
-  <div class="sep"></div>
+  <div class="tag">PROTOTYPE · ROUND 3</div>
+  <button id="prev" title="previous (←)">◀</button><div class="sep"></div>
   <div class="name"><b id="vname">—</b><span id="vkey">—</span></div>
-  <div class="sep"></div>
-  <button id="next" title="next variant (→)">▶</button>
-  <div class="sep"></div>
-  <button id="eye" title="reveal labels (L)">👁</button>
-  <div class="sep"></div>
-  <button id="wk" title="hide the day strip (W)">▤</button>
+  <div class="sep"></div><button id="next" title="next (→)">▶</button>
+  <div class="sep"></div><button id="eye" title="reveal labels (L)">👁</button>
+  <div class="sep"></div><button id="wk" title="hide day strip (W)">▤</button>
+  <div class="sep"></div><button id="dt" title="water datum (D)">↕</button>
 </div>
 
 <script>
 /* ==========================================================================
-   1. FAKE DATA — shaped like the real series
+   1. FAKE DATA
    ========================================================================== */
-const NOW       = new Date('2026-08-10T09:00:00+02:00');
-const PAST_H    = 6;     // ONE past window, used by every lane
-const WATER_H   = 136;   // BSH curve horizon, measured
-const WEATHER_H = 168;   // 7 days, locked on the map
-const MHW = 672, MNW = 324;
-const SUNRISE = 5.8, SUNSET = 21.2;
-const M2 = 12.4206;
+const NOW = new Date('2026-08-10T09:00:00+02:00');
+const PAST_H = 3;                      // round 2 said 6 h was too much
+const WATER_H = 136, WEATHER_H = 168;
+const MHW = 672, MNW = 324;            // Husum, cm above gauge zero
+const SUNRISE = 5.8, SUNSET = 21.2, M2 = 12.4206;
 
-function astro(t) {
+const astroAt = t => {
   const mean = (MHW + MNW) / 2;
-  const amp = (MHW - MNW) / 2 * (1 + 0.16 * Math.cos(2 * Math.PI * (t + 26) / (14.77 * 24)));
+  const amp = (MHW - MNW) / 2 * (1 + .16 * Math.cos(2 * Math.PI * (t + 26) / (14.77 * 24)));
   return mean + amp * Math.cos(2 * Math.PI * (t - 2.1) / M2);
-}
+};
 const STORM_T = 34, STORM_W = 17;
 const bump = t => Math.exp(-Math.pow((t - STORM_T) / STORM_W, 2));
-const surge     = t => 82 * bump(t) + 11 * Math.sin(2 * Math.PI * t / 37) + 9;
-const windMean  = t => 4.2 + 13.5 * bump(t) + 2.1 * Math.sin(2 * Math.PI * (t - 5) / 26) + 1.0 * Math.sin(t / 3.1);
-const windGust  = t => windMean(t) * (1.38 + 0.10 * Math.sin(t / 5.2));
-const windDir   = t => 236 + 62 / (1 + Math.exp(-(t - STORM_T) / 16));
-const cloud     = t => Math.min(100, Math.max(4, 26 + 68 * bump(t) + 30 * Math.sin(2 * Math.PI * (t - 14) / 21)));
-const rainMM    = t => +(Math.max(0, Math.sin(2 * Math.PI * (t - 12) / 19)) ** 3 * (0.5 + 4.2 * bump(t))).toFixed(2);
-const rainProb  = t => Math.round(Math.min(95, 8 + 78 * bump(t) + 22 * Math.max(0, Math.sin(2 * Math.PI * (t - 12) / 19))));
+const surge = t => 82 * bump(t) + 11 * Math.sin(2 * Math.PI * t / 37) + 9;
+const windMean = t => 4.2 + 13.5 * bump(t) + 2.1 * Math.sin(2 * Math.PI * (t - 5) / 26) + Math.sin(t / 3.1);
+const windGust = t => windMean(t) * (1.38 + .1 * Math.sin(t / 5.2));
+const windDir  = t => 236 + 62 / (1 + Math.exp(-(t - STORM_T) / 16));
+const cloud    = t => Math.min(100, Math.max(4, 26 + 68 * bump(t) + 30 * Math.sin(2 * Math.PI * (t - 14) / 21)));
+const rainMM   = t => +(Math.max(0, Math.sin(2 * Math.PI * (t - 12) / 19)) ** 3 * (.5 + 4.2 * bump(t))).toFixed(2);
+const rainProb = t => Math.round(Math.min(95, 8 + 78 * bump(t) + 22 * Math.max(0, Math.sin(2 * Math.PI * (t - 12) / 19))));
 const hourOfDay = t => ((NOW.getHours() + NOW.getMinutes() / 60 + t) % 24 + 24) % 24;
 const dayIndex  = t => Math.floor((NOW.getHours() + NOW.getMinutes() / 60 + t) / 24);
 const isNight   = t => { const h = hourOfDay(t); return h < SUNRISE || h > SUNSET; };
 const temp      = t => +(17.5 + 4.2 * Math.sin(2 * Math.PI * (hourOfDay(t) - 9) / 24) - 3.4 * bump(t)).toFixed(1);
-
-// condition code, WMO-ish. NOTE: the real source for this is an open question,
-// see the comment posted on the issue — the map's variable list has cloud cover
-// but no weather code.
+const humid     = t => Math.round(Math.min(97, 62 + 24 * bump(t) + 9 * Math.sin(2 * Math.PI * (hourOfDay(t) - 3) / 24)));
 function code(t) {
   const r = rainMM(t), c = cloud(t);
-  if (r > 2.5) return 65;
-  if (r > 0.6) return 63;
-  if (r > 0.05) return 61;
-  if (c > 80) return 3;
-  if (c > 45) return 2;
-  return 0;
+  if (r > 2.5) return 65; if (r > .6) return 63; if (r > .05) return 61;
+  if (c > 80) return 3;   if (c > 45) return 2;  return 0;
 }
 
-// water, 20-min grid
 const water = [];
-for (let t = -Math.max(PAST_H, 13); t <= WATER_H + 1e-9; t += 1 / 3) {
-  const a = astro(t), p = { t, astro: a };
-  if (t < -0.15) p.meas = a + surge(t) + 3 * Math.sin(t * 2.3);
-  else           p.fc   = a + surge(t);
+for (let t = -13; t <= WATER_H + 1e-9; t += 1 / 3) {
+  const a = astroAt(t), p = { t, astro: a };
+  if (t < -.15) p.meas = a + surge(t) + 3 * Math.sin(t * 2.3); else p.fc = a + surge(t);
   water.push(p);
 }
-// weather, hourly, now including the SAME past window as the tide
 const wx = [];
-for (let t = -PAST_H; t <= WEATHER_H; t++) {
+for (let t = -PAST_H; t <= WEATHER_H; t++)
   wx.push({ t, temp: temp(t), mean: windMean(t), gust: windGust(t), dir: windDir(t),
-            mm: rainMM(t), prob: rainProb(t), cloud: cloud(t), code: code(t), past: t < 0 });
-}
+            mm: rainMM(t), prob: rainProb(t), cloud: cloud(t), hum: humid(t), code: code(t), past: t < 0 });
 const at = t => wx.find(p => p.t === t);
 const NOWW = at(0);
+const waterNow = astroAt(0) + surge(0);
 
-function peaks() {
+const PEAKS = (() => {
   const out = [], v = p => (p.fc ?? p.meas ?? p.astro);
   for (let i = 1; i < water.length - 1; i++) {
     const a = v(water[i - 1]), b = v(water[i]), c = v(water[i + 1]);
     if ((b > a && b >= c) || (b < a && b <= c)) out.push({ t: water[i].t, v: b, hw: b > a, astro: water[i].astro });
   }
   return out;
-}
-const PEAKS = peaks();
-const nextHW = PEAKS.find(p => p.hw && p.t > 0);
-const waterNow = astro(0) + surge(0);
+})();
 
-const clock = t => {
-  const d = new Date(NOW.getTime() + t * 3600e3);
-  return String(d.getHours()).padStart(2, '0') + '.' + String(d.getMinutes()).padStart(2, '0');
-};
+const WD = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];
+const WDS = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+const clock = t => { const d = new Date(NOW.getTime() + t * 3600e3);
+  return String(d.getHours()).padStart(2,'0') + '.' + String(d.getMinutes()).padStart(2,'0'); };
+const dateOf = t => { const d = new Date(NOW.getTime() + t * 3600e3); return d.getDate() + '.' + (d.getMonth() + 1) + '.'; };
 
 const days = [];
 for (let d = 0; d < 7; d++) {
   const inDay = wx.filter(p => dayIndex(p.t) === d && p.t >= 0);
   if (!inDay.length) continue;
   const hw = PEAKS.filter(p => p.hw && dayIndex(p.t) === d);
-  const worst = inDay.reduce((a, b) => (b.code > a.code ? b : a), inDay[0]);
-  days.push({
-    d, gust: Math.max(...inDay.map(p => p.gust)), mean: Math.max(...inDay.map(p => p.mean)),
-    dir: inDay[Math.floor(inDay.length / 2)].dir,
-    mm: +inDay.reduce((s, p) => s + p.mm, 0).toFixed(1), prob: Math.max(...inDay.map(p => p.prob)),
-    tmax: Math.round(Math.max(...inDay.map(p => p.temp))), tmin: Math.round(Math.min(...inDay.map(p => p.temp))),
-    code: worst.code, hw, hasWater: inDay[0].t <= WATER_H
-  });
+  const worst = inDay.reduce((a,b) => b.code > a.code ? b : a, inDay[0]);
+  days.push({ d, gust: Math.max(...inDay.map(p=>p.gust)), dir: inDay[(inDay.length/2)|0].dir,
+    tmax: Math.round(Math.max(...inDay.map(p=>p.temp))), tmin: Math.round(Math.min(...inDay.map(p=>p.temp))),
+    code: worst.code, hw, hasWater: inDay[0].t <= WATER_H });
 }
 
 /* ==========================================================================
    2. HELPERS
    ========================================================================== */
-const path = (pts, close) => pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ') + (close ? 'Z' : '');
+const path = (pts, close) => pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ') + (close?'Z':'');
 function arrow(x, y, dirFrom, size, fill) {
-  const a = (dirFrom + 180) * Math.PI / 180, dx = Math.sin(a), dy = -Math.cos(a), px = -dy, py = dx;
-  const tx = x + dx * size, ty = y + dy * size, bx = x - dx * size, by = y - dy * size;
-  return `<path d="M${tx.toFixed(1)} ${ty.toFixed(1)} L${(bx + px * size * .62).toFixed(1)} ${(by + py * size * .62).toFixed(1)} L${(bx - dx * size * .25).toFixed(1)} ${(by - dy * size * .25).toFixed(1)} L${(bx - px * size * .62).toFixed(1)} ${(by - py * size * .62).toFixed(1)} Z" fill="${fill}"/>`;
+  const a = (dirFrom+180)*Math.PI/180, dx = Math.sin(a), dy = -Math.cos(a), px = -dy, py = dx;
+  const tx = x+dx*size, ty = y+dy*size, bx = x-dx*size, by = y-dy*size;
+  return `<path d="M${tx.toFixed(1)} ${ty.toFixed(1)} L${(bx+px*size*.62).toFixed(1)} ${(by+py*size*.62).toFixed(1)} L${(bx-dx*size*.25).toFixed(1)} ${(by-dy*size*.25).toFixed(1)} L${(bx-px*size*.62).toFixed(1)} ${(by-py*size*.62).toFixed(1)} Z" fill="${fill}"/>`;
 }
-const hatch = (id, c) => `<pattern id="${id}" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="${c}" stroke-width="1.6" opacity=".55"/></pattern>`;
 const P = de => `<span class="ph">${de}</span>`;
 
-// --- condition icons. no words, which is the point on a Frisian-only page. ---
 function icon(c, x, y, s, night) {
-  const g = [], sun = '#e8a33d', moon = '#8e9bb3', cl = '#9aa6b6', cd = '#7c8a9c', dr = '#3f8fd0';
-  const disc = (cx, cy, r) => night
-    ? `<path d="M${cx + r} ${cy} a${r} ${r} 0 1 1 ${-r * .75} ${-r * .95} a${r * .8} ${r * .8} 0 0 0 ${r * .75} ${r * .95}z" fill="${moon}"/>`
-    : `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${sun}"/>` +
-      [0,45,90,135,180,225,270,315].map(a => { const rad = a * Math.PI / 180;
-        return `<line x1="${cx + Math.cos(rad) * r * 1.35}" y1="${cy + Math.sin(rad) * r * 1.35}" x2="${cx + Math.cos(rad) * r * 1.85}" y2="${cy + Math.sin(rad) * r * 1.85}" stroke="${sun}" stroke-width="${s * .07}" stroke-linecap="round"/>`; }).join('');
-  const cloudP = (cx, cy, w, fill) =>
-    `<path d="M${cx - w * .5} ${cy + w * .18} a${w * .22} ${w * .22} 0 0 1 ${w * .03} ${-w * .42} a${w * .27} ${w * .27} 0 0 1 ${w * .52} ${-w * .12} a${w * .2} ${w * .2} 0 0 1 ${w * .45} ${w * .2} a${w * .19} ${w * .19} 0 0 1 ${-w * .05} ${w * .36} z" fill="${fill}"/>`;
-  if (c === 0) g.push(disc(x, y, s * .3));
-  if (c === 2) { g.push(disc(x + s * .16, y - s * .13, s * .22)); g.push(cloudP(x + s * .04, y + s * .1, s * .78, cl)); }
-  if (c === 3) { g.push(cloudP(x - s * .06, y - s * .02, s * .72, cd)); g.push(cloudP(x + s * .1, y + s * .12, s * .8, cl)); }
-  if (c >= 61) {
-    g.push(cloudP(x, y - s * .1, s * .86, c >= 65 ? cd : cl));
-    const n = c >= 65 ? 4 : c >= 63 ? 3 : 2;
-    for (let i = 0; i < n; i++) {
-      const dx = x - s * .28 + i * (s * .56 / Math.max(1, n - 1));
-      g.push(`<line x1="${dx}" y1="${y + s * .2}" x2="${dx - s * .07}" y2="${y + s * .42}" stroke="${dr}" stroke-width="${s * .085}" stroke-linecap="round"/>`);
-    }
+  const g = [], sun='#e8a33d', moon='#8e9bb3', cl='#9aa6b6', cd='#7c8a9c', dr='#3f8fd0';
+  const disc = (cx,cy,r) => night
+    ? `<path d="M${cx+r} ${cy} a${r} ${r} 0 1 1 ${-r*.75} ${-r*.95} a${r*.8} ${r*.8} 0 0 0 ${r*.75} ${r*.95}z" fill="${moon}"/>`
+    : `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${sun}"/>` + [0,45,90,135,180,225,270,315].map(a=>{const rad=a*Math.PI/180;
+        return `<line x1="${cx+Math.cos(rad)*r*1.35}" y1="${cy+Math.sin(rad)*r*1.35}" x2="${cx+Math.cos(rad)*r*1.85}" y2="${cy+Math.sin(rad)*r*1.85}" stroke="${sun}" stroke-width="${s*.07}" stroke-linecap="round"/>`;}).join('');
+  const cloudP = (cx,cy,w,fill) => `<path d="M${cx-w*.5} ${cy+w*.18} a${w*.22} ${w*.22} 0 0 1 ${w*.03} ${-w*.42} a${w*.27} ${w*.27} 0 0 1 ${w*.52} ${-w*.12} a${w*.2} ${w*.2} 0 0 1 ${w*.45} ${w*.2} a${w*.19} ${w*.19} 0 0 1 ${-w*.05} ${w*.36} z" fill="${fill}"/>`;
+  if (c===0) g.push(disc(x,y,s*.3));
+  if (c===2) { g.push(disc(x+s*.16,y-s*.13,s*.22)); g.push(cloudP(x+s*.04,y+s*.1,s*.78,cl)); }
+  if (c===3) { g.push(cloudP(x-s*.06,y-s*.02,s*.72,cd)); g.push(cloudP(x+s*.1,y+s*.12,s*.8,cl)); }
+  if (c>=61) {
+    g.push(cloudP(x,y-s*.1,s*.86, c>=65?cd:cl));
+    const n = c>=65?4:c>=63?3:2;
+    for (let i=0;i<n;i++){ const dx = x-s*.28+i*(s*.56/Math.max(1,n-1));
+      g.push(`<line x1="${dx}" y1="${y+s*.2}" x2="${dx-s*.07}" y2="${y+s*.42}" stroke="${dr}" stroke-width="${s*.085}" stroke-linecap="round"/>`); }
   }
   return g.join('');
 }
 
 /* ==========================================================================
-   3. SHARED HEADER + NOW BLOCK — weather leads
+   3. HEADER + NOW BLOCK
    ========================================================================== */
+function header() {
+  return `<header>
+    <div style="min-width:0">
+      <div class="place ph">Husum</div>
+      <div class="place-sub ph">Husum, Nordfriesland</div>
+    </div>
+    <div class="hbtns">
+      <div class="hbtn" title="change place"><svg width="17" height="17" viewBox="0 0 17 17"><circle cx="7.4" cy="7.4" r="5.1" fill="none" stroke="var(--ink-2)" stroke-width="1.7"/><line x1="11.2" y1="11.2" x2="15" y2="15" stroke="var(--ink-2)" stroke-width="1.9" stroke-linecap="round"/></svg></div>
+      <div class="hbtn" title="menu"><svg width="17" height="17" viewBox="0 0 17 17">${[4,8.5,13].map(y=>`<line x1="2.5" y1="${y}" x2="14.5" y2="${y}" stroke="var(--ink-2)" stroke-width="1.8" stroke-linecap="round"/>`).join('')}</svg></div>
+    </div>
+  </header>`;
+}
 function nowBlock() {
-  const surgeNow = Math.round(surge(0));
-  return `
-  <header>
-    <div class="place ph">Husum</div>
-    <div class="place-sub ph">Husum, Nordfriesland</div>
-  </header>
-  <div class="pad">
+  return `<div class="pad">
     <div class="now">
-      <svg width="72" height="66" viewBox="0 0 72 66">${icon(NOWW.code, 36, 33, 62, isNight(0))}</svg>
-      <div style="flex:1">
+      <svg width="70" height="64" viewBox="0 0 70 64">${icon(NOWW.code,35,32,60,isNight(0))}</svg>
+      <div style="flex:1;min-width:0">
         <div class="t mono">${Math.round(NOWW.temp)}<sup>°</sup></div>
-        <div class="cond"><span class="ph">wolkig, etwas Regen</span></div>
+        <div class="cond ph">wolkig, etwas Regen</div>
       </div>
-      <div style="text-align:right">
-        <div class="tiny ph" style="color:var(--ink-3)">Höchst / Tiefst</div>
-        <div class="mono" style="font-size:15px">${days[0].tmax}° <span style="color:var(--ink-3)">${days[0].tmin}°</span></div>
+      <div class="rt">
+        <div class="tiny ph" style="color:var(--ink-3)">Hoechst / Tiefst</div>
+        <div class="hl mono">${days[0].tmax}° <span style="color:var(--ink-3)">${days[0].tmin}°</span></div>
+        <div class="hum">
+          <svg width="9" height="11" viewBox="0 0 9 11"><path d="M4.5 .8 C7 4 8.4 5.6 8.4 7.2 A3.9 3.9 0 0 1 .6 7.2 C.6 5.6 2 4 4.5 .8 z" fill="none" stroke="var(--ink-3)" stroke-width="1.1"/></svg>
+          <span class="mono">${NOWW.hum}%</span><span class="ph">Luftfeuchte</span>
+        </div>
       </div>
     </div>
     <div class="secondary" style="margin-bottom:10px">
       <div class="sec">
         <div class="v mono">${Math.round(NOWW.mean)}<span class="u"> / ${Math.round(NOWW.gust)} m/s</span></div>
-        <div class="k" style="color:var(--wind)"><svg width="11" height="11">${arrow(5.5, 5.5, NOWW.dir, 4.6, 'var(--wind)')}</svg>${P('Wind')}</div>
+        <div class="k" style="color:var(--wind)"><svg width="11" height="11">${arrow(5.5,5.5,NOWW.dir,4.6,'var(--wind)')}</svg>${P('Wind')}</div>
       </div>
       <div class="sec">
-        <div class="v mono">${Math.round(waterNow)}<span class="u"> cm</span></div>
-        <div class="k" style="color:var(--surge)">+${surgeNow} ${P('über')}</div>
+        ${DATUM === 'abs'
+          ? `<div class="v mono">${Math.round(waterNow)}<span class="u"> cm</span></div>`
+          : `<div class="v mono" style="color:var(--surge)">+${Math.round(surge(0))}<span class="u"> cm</span></div>`}
+        <div class="k" style="color:${DATUM==='abs'?'var(--surge)':'var(--ink-3)'}">${DATUM==='abs' ? `+${Math.round(surge(0))} ${P('über')}` : P('über berechnet')}</div>
       </div>
       <div class="sec">
         <div class="v mono">${NOWW.mm.toFixed(1)}<span class="u"> mm</span></div>
@@ -310,16 +297,157 @@ function nowBlock() {
   </div>`;
 }
 
+/* ==========================================================================
+   4. LANES
+   ========================================================================== */
+const PXH = 15, H0 = -PAST_H, H1 = 48;
+const CW = (H1 - H0) * PXH;
+const X = t => (t - H0) * PXH;
+const wxw = wx.filter(p => p.t >= H0 && p.t <= H1);
+const waw = water.filter(p => p.t >= H0 && p.t <= H1);
+
+const GMAX = Math.max(12, Math.ceil(Math.max(...wxw.map(p=>p.gust))/5)*5);
+const RMAX = Math.max(1, Math.ceil(Math.max(...wxw.map(p=>p.mm))*2)/2);
+const TLO = Math.floor(Math.min(...wxw.map(p=>p.temp)) - 1);
+const THI = Math.ceil(Math.max(...wxw.map(p=>p.temp)) + 1);
+const WLO = 250, WHI = 820;
+
+let DATUM = 'abs';   // 'abs' = cm above gauge zero · 'rel' = deviation from MHW / MNW
+
+function bg(h, noNow) {
+  let s = '';
+  for (let t = H0; t < H1; t += .5) if (isNight(t)) s += `<rect x="${X(t)}" y="0" width="${PXH*.5+.5}" height="${h}" fill="var(--night)"/>`;
+  s += `<rect x="0" y="0" width="${X(0)}" height="${h}" fill="#000" opacity=".045"/>`;
+  for (let t = Math.ceil(H0); t <= H1; t++) {
+    const hod = hourOfDay(t);
+    if (Math.abs(hod) < .01) s += `<line x1="${X(t)}" y1="0" x2="${X(t)}" y2="${h}" stroke="var(--ink-3)" stroke-width="1" opacity=".5"/>`;
+    else if (hod % 6 < .01) s += `<line x1="${X(t)}" y1="0" x2="${X(t)}" y2="${h}" stroke="var(--line)" stroke-width="1"/>`;
+  }
+  if (!noNow) s += `<line x1="${X(0)}" y1="0" x2="${X(0)}" y2="${h}" stroke="var(--surge)" stroke-width="1.6"/>`;
+  return s;
+}
+// gridlines belong to the lane, tick NUMBERS live in the fixed column
+const grid = (h, ys, color) => ys.map(y => `<line x1="0" y1="${y}" x2="${CW}" y2="${y}" stroke="${color}" stroke-width=".6" opacity=".22"/>`).join('');
+
+const LANES = {
+  icons: { h:26, name:'Wetter', unit:'', tint:'transparent', color:'ink-3', ticks:()=>[],
+    paint(h) { let s = bg(h,true);
+      for (let t = Math.ceil(H0/3)*3; t <= H1; t += 3) { const p = at(t); if (!p) continue;
+        s += `<g opacity="${p.past?.45:1}">${icon(p.code, X(t), h/2, 22, isNight(t))}</g>`; }
+      return s; } },
+
+  temp: { h:56, name:'Grad', unit:'°', tint:'var(--temp-soft)', color:'temp',
+    y(v,h){ return h-6-((v-TLO)/(THI-TLO))*(h-16); },
+    ticks(h){ const step = (THI-TLO)>10?5:(THI-TLO)>5?2:1;
+      const out=[]; for(let v=Math.ceil(TLO/step)*step; v<=THI; v+=step) out.push({v, y:this.y(v,this.h)}); return out; },
+    paint(h) { const y = v=>this.y(v,h); let s = bg(h);
+      s += grid(h, this.ticks().map(t=>y(t.v)), 'var(--temp)');
+      s += `<path d="${path(wxw.map(p=>[X(p.t),y(p.temp)]).concat([[X(H1),h],[X(H0),h]]),true)}" fill="var(--temp-soft)" opacity=".75"/>`;
+      s += `<path d="${path(wxw.filter(p=>!p.past).map(p=>[X(p.t),y(p.temp)]))}" fill="none" stroke="var(--temp)" stroke-width="2.2"/>`;
+      s += `<path d="${path(wxw.filter(p=>p.t<=0).map(p=>[X(p.t),y(p.temp)]))}" fill="none" stroke="var(--temp)" stroke-width="2.2" opacity=".4"/>`;
+      for (let t=Math.ceil(H0/3)*3; t<=H1; t+=3){ const p=at(t); if(!p) continue;
+        s += `<text x="${X(t)}" y="${y(p.temp)-6}" font-size="10" text-anchor="middle" fill="var(--temp)" class="mono" opacity="${p.past?.5:1}">${Math.round(p.temp)}°</text>`; }
+      return s; } },
+
+  wind: { h:66, name:'Wind', unit:'m/s', tint:'var(--wind-soft)', color:'wind',
+    y(v,h){ return h-4-(v/GMAX)*(h-20); },
+    ticks(){ const step = GMAX>25?10:5, out=[]; for(let v=step; v<=GMAX; v+=step) out.push({v, y:this.y(v,this.h)}); return out; },
+    paint(h) { const y=v=>this.y(v,h); let s = bg(h);
+      s += grid(h, this.ticks().map(t=>y(t.v)), 'var(--wind)');
+      s += `<path d="${path(wxw.map(p=>[X(p.t),y(p.gust)]).concat(wxw.map(p=>[X(p.t),y(p.mean)]).reverse()),true)}" fill="var(--wind-soft)" opacity=".9"/>`;
+      s += `<path d="${path(wxw.map(p=>[X(p.t),y(p.mean)]))}" fill="none" stroke="var(--wind)" stroke-width="2.1"/>`;
+      for (let t=Math.ceil(H0/3)*3; t<=H1; t+=3){ const p=at(t); if(!p) continue;
+        s += `<g opacity="${p.past?.45:1}">${arrow(X(t),9,p.dir,5.2,'var(--wind)')}</g>`; }
+      return s; } },
+
+  rain: { h:44, name:'Regen', unit:'mm', tint:'var(--rain-soft)', color:'rain',
+    y(v,h){ return h-4-(v/RMAX)*(h-6); },
+    ticks(){ return [RMAX/2, RMAX].map(v=>({v: v%1?v.toFixed(1):v, y:this.y(v,this.h)})); },
+    paint(h) { const y=v=>this.y(v,h); let s = bg(h);
+      s += grid(h, [RMAX/2,RMAX].map(v=>y(v)), 'var(--rain)');
+      const bw = PXH-3.5;
+      wxw.forEach(p=>{
+        s += `<rect x="${X(p.t)-bw/2}" y="${h-(p.prob/100)*(h-4)}" width="${bw}" height="${(p.prob/100)*(h-4)}" fill="var(--rain-soft)" opacity=".85" rx="1"/>`;
+        if (p.mm>.02){ const bh = (Math.min(p.mm,RMAX)/RMAX)*(h-6);
+          s += `<rect x="${X(p.t)-bw/2}" y="${h-4-bh}" width="${bw}" height="${bh}" fill="var(--rain)" rx="1" opacity="${p.past?.45:1}"/>`; }
+      });
+      return s; } },
+
+  water: { h:106, name:'Wasser', get unit(){ return DATUM==='abs'?'cm':''; }, tint:'var(--sea-soft)', color:'sea',
+    y(v,h){ return h-4-((v-WLO)/(WHI-WLO))*(h-26); },
+    ticks(){ return DATUM==='abs'
+      ? [400,600,800].map(v=>({v, y:this.y(v,this.h)}))
+      : [{v:'', y:this.y(MHW,this.h), word:'MThw'}, {v:'', y:this.y(MNW,this.h), word:'MTnw'}]; },
+    paint(h) { const y=v=>this.y(v,h); let s = bg(h);
+      if (DATUM==='abs') s += grid(h,[400,600,800].map(v=>y(v)),'var(--sea)');
+      const drawn = waw.filter(p=>p.fc!=null||p.meas!=null);
+      s += `<path d="${path(drawn.map(p=>[X(p.t),y(p.fc??p.meas)]).concat(drawn.map(p=>[X(p.t),y(p.astro)]).reverse()),true)}" fill="var(--surge)" opacity=".3"/>`;
+      s += `<path d="${path(waw.map(p=>[X(p.t),y(p.astro)]))}" fill="none" stroke="var(--astro)" stroke-width="1.3" stroke-dasharray="3 3"/>`;
+      s += `<path d="${path(waw.filter(p=>p.meas!=null).map(p=>[X(p.t),y(p.meas)]))}" fill="none" stroke="var(--sea)" stroke-width="2.4" opacity=".45"/>`;
+      s += `<path d="${path(waw.filter(p=>p.fc!=null).map(p=>[X(p.t),y(p.fc)]))}" fill="none" stroke="var(--sea)" stroke-width="2.6"/>`;
+      [[MHW,'var(--sea)'],[MNW,'var(--sea)']].forEach(([v,c])=>
+        s += `<line x1="0" y1="${y(v)}" x2="${CW}" y2="${y(v)}" stroke="${c}" stroke-width=".8" opacity="${DATUM==='rel'?.55:.3}" stroke-dasharray="6 4"/>`);
+      PEAKS.filter(p=>p.t>=H0&&p.t<=H1).forEach(p=>{
+        const ly = p.hw ? 11 : h-4;
+        const ref = p.hw ? MHW : MNW, dev = Math.round(p.v-ref);
+        const label = DATUM==='abs' ? Math.round(p.v) : (dev>=0?'+':'') + dev;
+        s += `<circle cx="${X(p.t)}" cy="${y(p.v)}" r="2.6" fill="var(--sea)"/>`;
+        s += `<text x="${X(p.t)}" y="${ly}" font-size="10.5" text-anchor="middle" fill="${DATUM==='rel'&&dev>0?'var(--surge)':'var(--ink)'}" class="mono">${label}</text>`;
+        s += `<text x="${X(p.t)}" y="${ly+(p.hw?9:-9)}" font-size="8.5" text-anchor="middle" fill="var(--ink-3)" class="mono">${clock(p.t)}</text>`;
+      });
+      return s; } }
+};
+const ORDER = ['icons','temp','wind','rain','water'];
+
+/* the fixed scale column — same treatment on every lane, does not scroll */
+function scaleColumn() {
+  let y = 0, html = '';
+  ORDER.forEach(k => {
+    const L = LANES[k], ticks = L.ticks();
+    let inner = `<div style="position:absolute;top:2px;left:0;right:2px;font-size:9px;font-weight:600;line-height:1.05;color:var(--${L.color});text-align:${SIDE==='right'?'left':'right'}"><span class="ph">${L.name}</span></div>`;
+    ticks.forEach((t,i) => {
+      const top = Math.max(7, Math.min(L.h - 5, t.y));
+      const txt = t.word ? `<span class="ph">${t.word}</span>` : `${t.v}${i===ticks.length-1&&L.unit?`<span style="opacity:.6"> ${L.unit}</span>`:''}`;
+      inner += `<div class="mono" style="position:absolute;top:${top-6}px;left:0;right:2px;font-size:8.5px;color:var(--${L.color});opacity:.8;text-align:${SIDE==='right'?'left':'right'};white-space:nowrap">${txt}</div>`;
+    });
+    html += `<div style="position:absolute;top:${y}px;left:0;right:0;height:${L.h}px">${inner}</div>`;
+    y += L.h;
+  });
+  return `<div class="scaleCol" style="height:${y + 28}px">${html}</div>`;
+}
+
+function chartSvg() {
+  let y = 0, s = '';
+  ORDER.forEach(k => {
+    const L = LANES[k];
+    s += `<rect x="0" y="${y}" width="${CW}" height="${L.h}" fill="${L.tint}" opacity=".3"/>`;
+    s += `<g transform="translate(0,${y})">${L.paint(L.h)}</g>`;
+    s += `<line x1="0" y1="${y+L.h}" x2="${CW}" y2="${y+L.h}" stroke="#fff" stroke-width="2"/>`;
+    y += L.h;
+  });
+  return `<svg width="${CW}" height="${y}" viewBox="0 0 ${CW} ${y}">${s}</svg>`;
+}
+function axisSvg() {
+  let s = '';
+  for (let t = Math.ceil(H0/3)*3; t <= H1; t += 3)
+    s += `<text x="${X(t)}" y="12" font-size="9.5" text-anchor="middle" fill="var(--ink-3)" class="mono">${clock(t)}</text>`;
+  s += `<line x1="${X(0)}" y1="0" x2="${X(0)}" y2="3" stroke="var(--surge)" stroke-width="1.6"/>`;
+  // the day changes down here, out of the way of the icons row
+  for (let t = Math.ceil(H0); t <= H1; t++) if (Math.abs(hourOfDay(t)) < .01) {
+    s += `<line x1="${X(t)}" y1="16" x2="${X(t)}" y2="27" stroke="var(--ink-3)" stroke-width="1" opacity=".5"/>`;
+    s += `<text x="${X(t)+4}" y="25" font-size="9.5" fill="var(--ink-2)" class="mono">${WDS[dayIndex(t)%7]} ${dateOf(t)}</text>`;
+  }
+  return `<svg width="${CW}" height="28" viewBox="0 0 ${CW} 28">${s}</svg>`;
+}
+
 function dayStrip() {
-  const card = d => `
-    <div class="day">
-      <div class="dl ph">${['Mo','Di','Mi','Do','Fr','Sa','So'][d.d % 7]}</div>
-      <div class="dd mono">${new Date(NOW.getTime() + d.d * 864e5).getDate()}.8.</div>
-      <svg width="34" height="30" viewBox="0 0 34 30" style="margin:2px auto">${icon(d.code, 17, 15, 28, false)}</svg>
-      <div class="tm mono">${d.tmax}°</div>
-      <div class="tn mono">${d.tmin}°</div>
-      <svg width="46" height="16" viewBox="0 0 46 16" style="margin:3px auto 0">${arrow(7, 8, d.dir, 4.6, 'var(--wind)')}<text x="16" y="12" font-size="11" class="mono" fill="var(--ink-2)">${Math.round(d.gust)}</text></svg>
-      <div class="tiny mono" style="color:${d.hw.length ? 'var(--sea)' : 'var(--nodata)'};margin-top:3px">${d.hw.length ? clock(d.hw[0].t) : '– –'}</div>
+  const card = d => `<div class="day">
+      <div class="dl ph">${WDS[d.d%7]}</div>
+      <div class="dd mono">${dateOf(d.d*24)}</div>
+      <svg width="34" height="30" viewBox="0 0 34 30" style="margin:2px auto">${icon(d.code,17,15,28,false)}</svg>
+      <div class="tm mono">${d.tmax}°</div><div class="tn mono">${d.tmin}°</div>
+      <svg width="46" height="16" viewBox="0 0 46 16" style="margin:3px auto 0">${arrow(7,8,d.dir,4.6,'var(--wind)')}<text x="16" y="12" font-size="11" class="mono" fill="var(--ink-2)">${Math.round(d.gust)}</text></svg>
+      <div class="tiny mono" style="color:${d.hw.length?'var(--sea)':'var(--nodata)'};margin-top:3px">${d.hw.length?clock(d.hw[0].t):'– –'}</div>
     </div>`;
   return `<div class="weekblock"><div class="pad"><div class="card">
       <div class="tiny ph" style="font-weight:600;color:var(--ink-2);margin-bottom:7px">Die naechsten Tage</div>
@@ -328,205 +456,59 @@ function dayStrip() {
 }
 
 /* ==========================================================================
-   4. THE LANES — identical data and geometry in all three variants.
-      Only the separation between them changes.
+   5. PAGE + SWITCHER
    ========================================================================== */
-const PXH = 15, H0 = -PAST_H, H1 = 48;
-const CW = (H1 - H0) * PXH;
-const X = t => (t - H0) * PXH;
-const wxw = wx.filter(p => p.t >= H0 && p.t <= H1);
-const waw = water.filter(p => p.t >= H0 && p.t <= H1);
-
-const GMAX = Math.max(12, Math.ceil(Math.max(...wxw.map(p => p.gust)) / 5) * 5);
-const RMAX = Math.max(1, Math.ceil(Math.max(...wxw.map(p => p.mm)) * 2) / 2);
-const TLO = Math.floor(Math.min(...wxw.map(p => p.temp)) - 1);
-const THI = Math.ceil(Math.max(...wxw.map(p => p.temp)) + 1);
-const WLO = 250, WHI = 820;
-
-// background shared by every lane: night wash, day rules, past wash, now line
-function bg(h, opts = {}) {
-  let s = '';
-  for (let t = H0; t < H1; t += .5) if (isNight(t)) s += `<rect x="${X(t)}" y="0" width="${PXH * .5 + .5}" height="${h}" fill="var(--night)"/>`;
-  s += `<rect x="0" y="0" width="${X(0)}" height="${h}" fill="#000" opacity=".045"/>`;      // the past, everywhere
-  for (let t = Math.ceil(H0); t <= H1; t++) {
-    const hod = hourOfDay(t);
-    if (Math.abs(hod) < .01) s += `<line x1="${X(t)}" y1="0" x2="${X(t)}" y2="${h}" stroke="var(--ink-3)" stroke-width="1" opacity=".5"/>`;
-    else if (hod % 6 < .01) s += `<line x1="${X(t)}" y1="0" x2="${X(t)}" y2="${h}" stroke="var(--line)" stroke-width="1"/>`;
-  }
-  if (!opts.noNow) s += `<line x1="${X(0)}" y1="0" x2="${X(0)}" y2="${h}" stroke="var(--surge)" stroke-width="1.6"/>`;
-  return s;
-}
-
-// --- lane painters. each returns svg innards for a box of height h. ---
-const LANES = {
-  icons: { h: 26, name: 'Wetter', val: () => '', paint: h => {
-    let s = bg(h, { noNow: true });
-    for (let t = Math.ceil(H0 / 3) * 3; t <= H1; t += 3) {
-      const p = at(t); if (!p) continue;
-      s += `<g opacity="${p.past ? .45 : 1}">${icon(p.code, X(t), h / 2, 22, isNight(t))}</g>`;
-    }
-    return s;
-  }},
-  temp: { h: 56, name: 'Grad', val: () => `${Math.round(NOWW.temp)}°`, paint: h => {
-    const y = v => h - 6 - ((v - TLO) / (THI - TLO)) * (h - 16);
-    let s = bg(h);
-    s += `<path d="${path(wxw.map(p => [X(p.t), y(p.temp)]).concat([[X(H1), h], [X(H0), h]]), true)}" fill="var(--temp-soft)" opacity=".7"/>`;
-    s += `<path d="${path(wxw.filter(p => !p.past).map(p => [X(p.t), y(p.temp)]))}" fill="none" stroke="var(--temp)" stroke-width="2.2"/>`;
-    s += `<path d="${path(wxw.filter(p => p.t <= 0).map(p => [X(p.t), y(p.temp)]))}" fill="none" stroke="var(--temp)" stroke-width="2.2" opacity=".4"/>`;
-    for (let t = Math.ceil(H0 / 3) * 3; t <= H1; t += 3) {
-      const p = at(t); if (!p) continue;
-      s += `<text x="${X(t)}" y="${y(p.temp) - 6}" font-size="10" text-anchor="middle" fill="var(--temp)" class="mono" opacity="${p.past ? .5 : 1}">${Math.round(p.temp)}°</text>`;
-    }
-    return s;
-  }},
-  wind: { h: 66, name: 'Wind', val: () => `${Math.round(NOWW.mean)}`, paint: h => {
-    const y = v => h - 4 - (v / GMAX) * (h - 20);
-    let s = bg(h);
-    s += `<path d="${path(wxw.map(p => [X(p.t), y(p.gust)]).concat(wxw.map(p => [X(p.t), y(p.mean)]).reverse()), true)}" fill="var(--wind-soft)" opacity=".85"/>`;
-    s += `<path d="${path(wxw.map(p => [X(p.t), y(p.mean)]))}" fill="none" stroke="var(--wind)" stroke-width="2.1"/>`;
-    [5, 10, 15, 20, 25].filter(v => v < GMAX).forEach(v =>
-      s += `<line x1="0" y1="${y(v)}" x2="${CW}" y2="${y(v)}" stroke="var(--wind)" stroke-width=".6" opacity=".2"/><text x="3" y="${y(v) - 2}" font-size="8" fill="var(--wind)" opacity=".6" class="mono">${v}</text>`);
-    for (let t = Math.ceil(H0 / 3) * 3; t <= H1; t += 3) {
-      const p = at(t); if (!p) continue;
-      s += `<g opacity="${p.past ? .45 : 1}">${arrow(X(t), 9, p.dir, 5.2, 'var(--wind)')}</g>`;
-    }
-    return s;
-  }},
-  rain: { h: 42, name: 'Regen', val: () => `${NOWW.mm.toFixed(1)}`, paint: h => {
-    let s = bg(h);
-    const bw = PXH - 3.5;
-    wxw.forEach(p => {
-      s += `<rect x="${X(p.t) - bw / 2}" y="${h - (p.prob / 100) * (h - 4)}" width="${bw}" height="${(p.prob / 100) * (h - 4)}" fill="var(--rain-soft)" opacity=".8" rx="1"/>`;
-      if (p.mm > .02) { const bh = (Math.min(p.mm, RMAX) / RMAX) * (h - 4);
-        s += `<rect x="${X(p.t) - bw / 2}" y="${h - bh}" width="${bw}" height="${bh}" fill="var(--rain)" rx="1" opacity="${p.past ? .45 : 1}"/>`; }
-    });
-    s += `<text x="3" y="9" font-size="8" fill="var(--rain)" opacity=".7" class="mono">${RMAX} mm</text>`;
-    return s;
-  }},
-  water: { h: 104, name: 'Wasser', val: () => `${Math.round(waterNow)}`, paint: h => {
-    const y = v => h - 4 - ((v - WLO) / (WHI - WLO)) * (h - 26);
-    let s = bg(h);
-    const drawn = waw.filter(p => p.fc != null || p.meas != null);
-    s += `<path d="${path(drawn.map(p => [X(p.t), y(p.fc ?? p.meas)]).concat(drawn.map(p => [X(p.t), y(p.astro)]).reverse()), true)}" fill="var(--surge)" opacity=".28"/>`;
-    s += `<path d="${path(waw.map(p => [X(p.t), y(p.astro)]))}" fill="none" stroke="var(--astro)" stroke-width="1.3" stroke-dasharray="3 3"/>`;
-    s += `<path d="${path(waw.filter(p => p.meas != null).map(p => [X(p.t), y(p.meas)]))}" fill="none" stroke="var(--sea)" stroke-width="2.4" opacity=".45"/>`;
-    s += `<path d="${path(waw.filter(p => p.fc != null).map(p => [X(p.t), y(p.fc)]))}" fill="none" stroke="var(--sea)" stroke-width="2.6"/>`;
-    s += `<line x1="0" y1="${y(MHW)}" x2="${CW}" y2="${y(MHW)}" stroke="var(--sea)" stroke-width=".7" opacity=".35" stroke-dasharray="6 4"/>`;
-    PEAKS.filter(p => p.t >= H0 && p.t <= H1).forEach(p => {
-      const ly = p.hw ? 11 : h - 4;
-      s += `<circle cx="${X(p.t)}" cy="${y(p.v)}" r="2.6" fill="var(--sea)"/>`;
-      s += `<text x="${X(p.t)}" y="${ly}" font-size="10" text-anchor="middle" fill="var(--ink)" class="mono">${Math.round(p.v)}</text>`;
-      s += `<text x="${X(p.t)}" y="${ly + (p.hw ? 9 : -9)}" font-size="8.5" text-anchor="middle" fill="var(--ink-3)" class="mono">${clock(p.t)}</text>`;
-    });
-    return s;
-  }}
-};
-const ORDER = ['icons', 'temp', 'wind', 'rain', 'water'];
-
-function axisSvg() {
-  let s = '';
-  for (let t = Math.ceil(H0 / 3) * 3; t <= H1; t += 3)
-    s += `<text x="${X(t)}" y="12" font-size="9.5" text-anchor="middle" fill="var(--ink-3)" class="mono">${clock(t)}</text>`;
-  s += `<line x1="${X(0)}" y1="0" x2="${X(0)}" y2="3" stroke="var(--surge)" stroke-width="1.6"/>`;
-  return `<svg width="${CW}" height="17" viewBox="0 0 ${CW} 17">${s}</svg>`;
-}
-const gutterCell = (k, h, extra = '') =>
-  `<div class="gcell" style="height:${h}px;${extra}"><div class="n ph">${LANES[k].name}</div>${LANES[k].val() ? `<div class="v mono" style="color:var(--${k === 'icons' ? 'ink' : k})">${LANES[k].val()}</div>` : ''}</div>`;
-
-/* ==========================================================================
-   5. VARIANT 1 — every lane in its own box
-   ========================================================================== */
-function Variant1() {
-  const boxes = ORDER.map(k => `<div><svg width="${CW}" height="${LANES[k].h}" viewBox="0 0 ${CW} ${LANES[k].h}">${LANES[k].paint(LANES[k].h)}</svg></div>`).join('');
-  const gut = ORDER.map(k => gutterCell(k, LANES[k].h + 7)).join('');
-  return nowBlock() + `<div class="pad"><div class="card" style="padding:10px 8px 6px">
-      <div class="chartwrap">
-        <div class="gutter">${gut}<div style="height:17px"></div></div>
-        <div class="scroller" id="sc"><div class="laneboxes">${boxes}</div>${axisSvg()}</div>
+let SIDE = 'left';
+function render() {
+  return header() + nowBlock() + `<div class="pad"><div class="card chartcard">
+      <div class="charthead" style="justify-content:${SIDE==='right'?'flex-start':'flex-end'}">
+        <div id="daypill"><b class="ph">Montag</b><span class="mono">10.8.</span></div>
+      </div>
+      <div class="chartwrap ${SIDE==='right'?'right':''}">
+        ${scaleColumn()}
+        <div class="scroller" id="sc">${chartSvg()}${axisSvg()}</div>
       </div>
     </div></div>` + dayStrip();
 }
 
-/* ==========================================================================
-   6. VARIANT 2 — one continuous panel, each lane a tinted band
-   ========================================================================== */
-function Variant2() {
-  const tints = { icons: 'transparent', temp: 'var(--temp-soft)', wind: 'var(--wind-soft)', rain: 'var(--rain-soft)', water: 'var(--sea-soft)' };
-  let y = 0, s = '';
-  ORDER.forEach(k => {
-    const h = LANES[k].h;
-    s += `<rect x="0" y="${y}" width="${CW}" height="${h}" fill="${tints[k]}" opacity=".28"/>`;
-    s += `<g transform="translate(0,${y})">${LANES[k].paint(h)}</g>`;
-    s += `<line x1="0" y1="${y + h}" x2="${CW}" y2="${y + h}" stroke="#fff" stroke-width="2"/>`;
-    y += h;
-  });
-  const gut = ORDER.map(k => `<div class="gcell" style="height:${LANES[k].h}px;background:${tints[k]};opacity:1;border-radius:6px 0 0 6px;margin-bottom:0"><div class="n ph">${LANES[k].name}</div>${LANES[k].val() ? `<div class="v mono">${LANES[k].val()}</div>` : ''}</div>`).join('');
-  return nowBlock() + `<div class="pad"><div class="card" style="padding:10px 8px 6px">
-      <div class="chartwrap">
-        <div class="gutter">${gut}<div style="height:17px"></div></div>
-        <div class="scroller" id="sc"><svg width="${CW}" height="${y}" viewBox="0 0 ${CW} ${y}">${s}</svg>${axisSvg()}</div>
-      </div>
-    </div></div>` + dayStrip();
-}
-
-/* ==========================================================================
-   7. VARIANT 3 — one lane big, the others as thin aligned strips you tap
-   ========================================================================== */
-let BIG = 'water';
-function Variant3() {
-  const big = LANES[BIG], BH = 150;
-  const others = ORDER.filter(k => k !== BIG && k !== 'icons');
-  const strips = others.map(k => `<div style="margin-bottom:4px"><svg width="${CW}" height="30" viewBox="0 0 ${CW} 30">${LANES[k].paint(30)}</svg></div>`).join('');
-  const gutStrips = others.map(k => `<div class="gcell" style="height:34px"><div class="n ph">${LANES[k].name}</div></div>`).join('');
-  const tabs = ORDER.filter(k => k !== 'icons').map(k =>
-    `<button data-lane="${k}" class="${k === BIG ? 'on' : ''}"><b class="mono">${LANES[k].val()}</b><span class="ph">${LANES[k].name}</span></button>`).join('');
-  return nowBlock() + `<div class="pad"><div class="card" style="padding:10px 8px 6px">
-      <div class="tabs" id="tabs">${tabs}</div>
-      <div class="chartwrap">
-        <div class="gutter"><div class="gcell" style="height:26px"></div><div class="gcell" style="height:${BH}px"><div class="n ph">${big.name}</div><div class="v mono">${big.val()}</div></div>${gutStrips}<div style="height:17px"></div></div>
-        <div class="scroller" id="sc">
-          <svg width="${CW}" height="26" viewBox="0 0 ${CW} 26">${LANES.icons.paint(26)}</svg>
-          <svg width="${CW}" height="${BH}" viewBox="0 0 ${CW} ${BH}" style="margin-bottom:6px">${big.paint(BH)}</svg>
-          ${strips}
-          ${axisSvg()}
-        </div>
-      </div>
-    </div></div>` + dayStrip();
-}
-
-/* ==========================================================================
-   8. SWITCHER
-   ========================================================================== */
 const VARIANTS = {
-  1: { name: 'Lanes in separate boxes', render: Variant1 },
-  2: { name: 'Tinted bands, one panel',  render: Variant2 },
-  3: { name: 'One lane big, rest strips', render: Variant3 }
+  1: { name:'Scale column on the left',  side:'left'  },
+  2: { name:'Scale column on the right', side:'right' }
 };
 const KEYS = Object.keys(VARIANTS);
-const current = () => { const v = new URLSearchParams(location.search).get('variant'); return KEYS.includes(v) ? v : '1'; };
-function go(k) { const u = new URL(location.href); u.searchParams.set('variant', k); history.replaceState(null, '', u); draw(); }
+const current = () => { const v = new URLSearchParams(location.search).get('variant'); return KEYS.includes(v)?v:'1'; };
+function go(k){ const u = new URL(location.href); u.searchParams.set('variant',k); history.replaceState(null,'',u); draw(); }
+
 function draw() {
   const k = current();
-  document.getElementById('app').innerHTML = VARIANTS[k].render();
-  document.getElementById('vname').textContent = VARIANTS[k].name;
-  document.getElementById('vkey').textContent = `variant ${k} of ${KEYS.length} · L labels · W day strip`;
-  const sc = document.getElementById('sc');
-  if (sc) sc.scrollLeft = 0;
-  const tabs = document.getElementById('tabs');
-  if (tabs) tabs.querySelectorAll('button').forEach(b => b.onclick = () => { BIG = b.dataset.lane; draw(); });
+  SIDE = VARIANTS[k].side;
+  document.getElementById('app').innerHTML = render();
+  vname.textContent = VARIANTS[k].name;
+  vkey.textContent = `scale ${SIDE} · water: ${DATUM==='abs'?'absolute cm':'vs mean'} · L W D`;
+  const sc = document.getElementById('sc'), pill = document.getElementById('daypill');
+  const upd = () => {
+    const t = H0 + sc.scrollLeft / PXH + 1;                 // hour at the left edge
+    pill.querySelector('b').textContent = WD[dayIndex(t)%7];
+    pill.querySelector('span').textContent = dateOf(t);
+    pill.classList.toggle('on', sc.scrollLeft > 18);
+  };
+  sc.addEventListener('scroll', upd, { passive:true });
+  sc.scrollLeft = 0; upd();
 }
-const step = d => go(KEYS[(KEYS.indexOf(current()) + d + KEYS.length) % KEYS.length]);
+const step = d => go(KEYS[(KEYS.indexOf(current())+d+KEYS.length)%KEYS.length]);
 prev.onclick = () => step(-1);
 next.onclick = () => step(1);
 eye.onclick = () => { document.body.classList.toggle('reveal'); eye.classList.toggle('on'); };
 wk.onclick  = () => { document.body.classList.toggle('hide-week'); wk.classList.toggle('on'); };
+dt.onclick  = () => { DATUM = DATUM==='abs'?'rel':'abs'; dt.classList.toggle('on'); draw(); };
 addEventListener('keydown', e => {
   const t = e.target;
-  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
-  if (e.key === 'ArrowLeft')  { e.preventDefault(); step(-1); }
-  if (e.key === 'ArrowRight') { e.preventDefault(); step(1); }
-  if (e.key.toLowerCase() === 'l') eye.click();
-  if (e.key.toLowerCase() === 'w') wk.click();
+  if (t && (t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable)) return;
+  if (e.key==='ArrowLeft'){ e.preventDefault(); step(-1); }
+  if (e.key==='ArrowRight'){ e.preventDefault(); step(1); }
+  if (e.key.toLowerCase()==='l') eye.click();
+  if (e.key.toLowerCase()==='w') wk.click();
+  if (e.key.toLowerCase()==='d') dt.click();
 });
 draw();
 </script>
