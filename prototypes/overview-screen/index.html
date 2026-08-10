@@ -138,7 +138,6 @@
   <div class="sep"></div><button id="next" title="next (→)">▶</button>
   <div class="sep"></div><button id="eye" title="reveal labels (L)">👁</button>
   <div class="sep"></div><button id="wk" title="hide day strip (W)">▤</button>
-  <div class="sep"></div><button id="dt" title="water datum (D)">↕</button>
 </div>
 
 <script>
@@ -261,6 +260,49 @@ function header() {
     </div>
   </header>`;
 }
+/* The top water cell. Round 3 showed a bare "+11 cm" and nothing said WATER.
+   Three ways to fix that, all wordless, since the label is unreadable anyway. */
+const nextPeak = PEAKS.find(p => p.t > 0);
+const nextHW   = PEAKS.find(p => p.t > 0 && p.hw);
+const RISING   = nextPeak.hw;
+const waves = (x, y, w, c, n) => Array.from({length:n}, (_, i) =>
+  `<path d="M${x} ${y+i*4.6} q${w*.25} ${-3.4} ${w*.5} 0 t${w*.5} 0" fill="none" stroke="${c}" stroke-width="1.5" stroke-linecap="round" opacity="${1-i*.28}"/>`).join('');
+function tideSpark(w, h) {
+  const t0 = -4, t1 = 16;
+  const seg = water.filter(p => p.t >= t0 && p.t <= t1);
+  const lo = Math.min(...seg.map(p=>p.astro)), hi = Math.max(...seg.map(p=>p.astro));
+  const sx = t => (t - t0) / (t1 - t0) * w, sy = v => h - 2 - ((v - lo) / (hi - lo)) * (h - 5);
+  const line = seg.map(p => [sx(p.t), sy(p.fc ?? p.meas ?? p.astro)]);
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+    <path d="${path(line.concat([[w,h],[0,h]]),true)}" fill="var(--sea-soft)" opacity=".6"/>
+    <path d="${path(line)}" fill="none" stroke="var(--sea)" stroke-width="1.5"/>
+    <circle cx="${sx(0)}" cy="${sy(waterNow)}" r="2.3" fill="var(--surge)"/></svg>`;
+}
+function waterCell() {
+  const dev = Math.round(nextHW.v - MHW);
+  if (CELL === 'wave') return `<div class="sec">
+      <div style="display:flex;align-items:baseline;gap:5px">
+        <svg width="17" height="15" viewBox="0 0 17 15" style="flex:none">${waves(1,5,15,'var(--sea)',3)}</svg>
+        <div class="v mono" style="color:var(--surge)">+${Math.round(surge(0))}<span class="u"> cm</span></div>
+      </div>
+      <div class="k" style="color:var(--sea)">${RISING?'▲':'▼'} <span class="mono">${clock(nextPeak.t)}</span> ${P('Hochwasser')}</div>
+    </div>`;
+  if (CELL === 'next') return `<div class="sec">
+      <div class="v mono" style="display:flex;align-items:baseline;gap:4px">
+        <svg width="15" height="13" viewBox="0 0 15 13" style="flex:none">${waves(1,4,13,'var(--sea)',3)}</svg>
+        ${clock(nextHW.t)}<span class="u"> ${dev>=0?'+':''}${dev}</span>
+      </div>
+      <div class="k" style="color:var(--ink-3)">${P('naechstes Hochwasser')}</div>
+    </div>`;
+  return `<div class="sec">
+      <div style="display:flex;align-items:center;gap:6px">
+        <div class="v mono" style="color:var(--surge)">+${Math.round(surge(0))}<span class="u"> cm</span></div>
+        <div style="margin-left:auto">${tideSpark(38,20)}</div>
+      </div>
+      <div class="k" style="color:var(--ink-3)">${RISING?'▲':'▼'} <span class="mono">${clock(nextPeak.t)}</span></div>
+    </div>`;
+}
+
 function nowBlock() {
   return `<div class="pad">
     <div class="now">
@@ -283,12 +325,7 @@ function nowBlock() {
         <div class="v mono">${Math.round(NOWW.mean)}<span class="u"> / ${Math.round(NOWW.gust)} m/s</span></div>
         <div class="k" style="color:var(--wind)"><svg width="11" height="11">${arrow(5.5,5.5,NOWW.dir,4.6,'var(--wind)')}</svg>${P('Wind')}</div>
       </div>
-      <div class="sec">
-        ${DATUM === 'abs'
-          ? `<div class="v mono">${Math.round(waterNow)}<span class="u"> cm</span></div>`
-          : `<div class="v mono" style="color:var(--surge)">+${Math.round(surge(0))}<span class="u"> cm</span></div>`}
-        <div class="k" style="color:${DATUM==='abs'?'var(--surge)':'var(--ink-3)'}">${DATUM==='abs' ? `+${Math.round(surge(0))} ${P('über')}` : P('über berechnet')}</div>
-      </div>
+      ${waterCell()}
       <div class="sec">
         <div class="v mono">${NOWW.mm.toFixed(1)}<span class="u"> mm</span></div>
         <div class="k" style="color:var(--rain)">${NOWW.prob}% ${P('Regen')}</div>
@@ -311,8 +348,6 @@ const RMAX = Math.max(1, Math.ceil(Math.max(...wxw.map(p=>p.mm))*2)/2);
 const TLO = Math.floor(Math.min(...wxw.map(p=>p.temp)) - 1);
 const THI = Math.ceil(Math.max(...wxw.map(p=>p.temp)) + 1);
 const WLO = 250, WHI = 820;
-
-let DATUM = 'abs';   // 'abs' = cm above gauge zero · 'rel' = deviation from MHW / MNW
 
 function bg(h, noNow) {
   let s = '';
@@ -373,26 +408,24 @@ const LANES = {
       });
       return s; } },
 
-  water: { h:106, name:'Wasser', get unit(){ return DATUM==='abs'?'cm':''; }, tint:'var(--sea-soft)', color:'sea',
+  water: { h:106, name:'Wasser', unit:'', tint:'var(--sea-soft)', color:'sea',
     y(v,h){ return h-4-((v-WLO)/(WHI-WLO))*(h-26); },
-    ticks(){ return DATUM==='abs'
-      ? [400,600,800].map(v=>({v, y:this.y(v,this.h)}))
-      : [{v:'', y:this.y(MHW,this.h), word:'MThw'}, {v:'', y:this.y(MNW,this.h), word:'MTnw'}]; },
+    // no absolute numbers: gauge zero is a local survey datum and means nothing
+    // to a reader. the two reference lines are mean high and mean low water.
+    ticks(){ return [{v:'', y:this.y(MHW,this.h), word:'MThw'}, {v:'', y:this.y(MNW,this.h), word:'MTnw'}]; },
     paint(h) { const y=v=>this.y(v,h); let s = bg(h);
-      if (DATUM==='abs') s += grid(h,[400,600,800].map(v=>y(v)),'var(--sea)');
       const drawn = waw.filter(p=>p.fc!=null||p.meas!=null);
       s += `<path d="${path(drawn.map(p=>[X(p.t),y(p.fc??p.meas)]).concat(drawn.map(p=>[X(p.t),y(p.astro)]).reverse()),true)}" fill="var(--surge)" opacity=".3"/>`;
       s += `<path d="${path(waw.map(p=>[X(p.t),y(p.astro)]))}" fill="none" stroke="var(--astro)" stroke-width="1.3" stroke-dasharray="3 3"/>`;
       s += `<path d="${path(waw.filter(p=>p.meas!=null).map(p=>[X(p.t),y(p.meas)]))}" fill="none" stroke="var(--sea)" stroke-width="2.4" opacity=".45"/>`;
       s += `<path d="${path(waw.filter(p=>p.fc!=null).map(p=>[X(p.t),y(p.fc)]))}" fill="none" stroke="var(--sea)" stroke-width="2.6"/>`;
-      [[MHW,'var(--sea)'],[MNW,'var(--sea)']].forEach(([v,c])=>
-        s += `<line x1="0" y1="${y(v)}" x2="${CW}" y2="${y(v)}" stroke="${c}" stroke-width=".8" opacity="${DATUM==='rel'?.55:.3}" stroke-dasharray="6 4"/>`);
+      [MHW,MNW].forEach(v =>
+        s += `<line x1="0" y1="${y(v)}" x2="${CW}" y2="${y(v)}" stroke="var(--sea)" stroke-width=".8" opacity=".55" stroke-dasharray="6 4"/>`);
       PEAKS.filter(p=>p.t>=H0&&p.t<=H1).forEach(p=>{
         const ly = p.hw ? 11 : h-4;
-        const ref = p.hw ? MHW : MNW, dev = Math.round(p.v-ref);
-        const label = DATUM==='abs' ? Math.round(p.v) : (dev>=0?'+':'') + dev;
+        const dev = Math.round(p.v - (p.hw ? MHW : MNW));
         s += `<circle cx="${X(p.t)}" cy="${y(p.v)}" r="2.6" fill="var(--sea)"/>`;
-        s += `<text x="${X(p.t)}" y="${ly}" font-size="10.5" text-anchor="middle" fill="${DATUM==='rel'&&dev>0?'var(--surge)':'var(--ink)'}" class="mono">${label}</text>`;
+        s += `<text x="${X(p.t)}" y="${ly}" font-size="10.5" text-anchor="middle" fill="${dev>0?'var(--surge)':'var(--ink)'}" class="mono">${(dev>=0?'+':'')+dev}</text>`;
         s += `<text x="${X(p.t)}" y="${ly+(p.hw?9:-9)}" font-size="8.5" text-anchor="middle" fill="var(--ink-3)" class="mono">${clock(p.t)}</text>`;
       });
       return s; } }
@@ -404,11 +437,14 @@ function scaleColumn() {
   let y = 0, html = '';
   ORDER.forEach(k => {
     const L = LANES[k], ticks = L.ticks();
-    let inner = `<div style="position:absolute;top:2px;left:0;right:2px;font-size:9px;font-weight:600;line-height:1.05;color:var(--${L.color});text-align:${SIDE==='right'?'left':'right'}"><span class="ph">${L.name}</span></div>`;
+    // the tinted block behind the scale, back from round 2 but weaker — it is
+    // what ties each lane's numbers to its colour
+    let inner = `<div style="position:absolute;inset:0 4px 0 0;background:${L.tint};opacity:.4;border-radius:7px 0 0 7px"></div>`;
+    inner += `<div style="position:absolute;top:2px;left:0;right:6px;font-size:9px;font-weight:600;line-height:1.05;color:var(--${L.color});text-align:right"><span class="ph">${L.name}</span></div>`;
     ticks.forEach((t,i) => {
       const top = Math.max(7, Math.min(L.h - 5, t.y));
       const txt = t.word ? `<span class="ph">${t.word}</span>` : `${t.v}${i===ticks.length-1&&L.unit?`<span style="opacity:.6"> ${L.unit}</span>`:''}`;
-      inner += `<div class="mono" style="position:absolute;top:${top-6}px;left:0;right:2px;font-size:8.5px;color:var(--${L.color});opacity:.8;text-align:${SIDE==='right'?'left':'right'};white-space:nowrap">${txt}</div>`;
+      inner += `<div class="mono" style="position:absolute;top:${top-6}px;left:0;right:6px;font-size:8.5px;color:var(--${L.color});opacity:.85;text-align:right;white-space:nowrap">${txt}</div>`;
     });
     html += `<div style="position:absolute;top:${y}px;left:0;right:0;height:${L.h}px">${inner}</div>`;
     y += L.h;
@@ -432,10 +468,14 @@ function axisSvg() {
   for (let t = Math.ceil(H0/3)*3; t <= H1; t += 3)
     s += `<text x="${X(t)}" y="12" font-size="9.5" text-anchor="middle" fill="var(--ink-3)" class="mono">${clock(t)}</text>`;
   s += `<line x1="${X(0)}" y1="0" x2="${X(0)}" y2="3" stroke="var(--surge)" stroke-width="1.6"/>`;
-  // the day changes down here, out of the way of the icons row
-  for (let t = Math.ceil(H0); t <= H1; t++) if (Math.abs(hourOfDay(t)) < .01) {
-    s += `<line x1="${X(t)}" y1="16" x2="${X(t)}" y2="27" stroke="var(--ink-3)" stroke-width="1" opacity=".5"/>`;
-    s += `<text x="${X(t)+4}" y="25" font-size="9.5" fill="var(--ink-2)" class="mono">${WDS[dayIndex(t)%7]} ${dateOf(t)}</text>`;
+  // day label sits in the MIDDLE of its day, not on the midnight boundary —
+  // the middle of the day is what the label is actually about
+  for (let d = dayIndex(H0); d <= dayIndex(H1); d++) {
+    const t0 = Math.max(H0, d * 24 - (NOW.getHours() + NOW.getMinutes() / 60));
+    const t1 = Math.min(H1, (d + 1) * 24 - (NOW.getHours() + NOW.getMinutes() / 60));
+    if (t1 - t0 < 3) continue;
+    s += `<text x="${(X(t0)+X(t1))/2}" y="25" font-size="9.5" text-anchor="middle" fill="var(--ink-2)" class="mono">${WDS[((d%7)+7)%7]} ${dateOf(d*24)}</text>`;
+    if (t0 > H0) s += `<line x1="${X(t0)}" y1="16" x2="${X(t0)}" y2="27" stroke="var(--ink-3)" stroke-width="1" opacity=".45"/>`;
   }
   return `<svg width="${CW}" height="28" viewBox="0 0 ${CW} 28">${s}</svg>`;
 }
@@ -458,22 +498,25 @@ function dayStrip() {
 /* ==========================================================================
    5. PAGE + SWITCHER
    ========================================================================== */
-let SIDE = 'left';
+let CELL = 'wave';
 function render() {
   return header() + nowBlock() + `<div class="pad"><div class="card chartcard">
-      <div class="charthead" style="justify-content:${SIDE==='right'?'flex-start':'flex-end'}">
+      <div class="charthead" style="justify-content:flex-end">
         <div id="daypill"><b class="ph">Montag</b><span class="mono">10.8.</span></div>
       </div>
-      <div class="chartwrap ${SIDE==='right'?'right':''}">
+      <div class="chartwrap">
         ${scaleColumn()}
         <div class="scroller" id="sc">${chartSvg()}${axisSvg()}</div>
       </div>
     </div></div>` + dayStrip();
 }
 
+// scale side and datum are settled. the only thing still open is how the top
+// water cell says "this is the water level" without a readable word.
 const VARIANTS = {
-  1: { name:'Scale column on the left',  side:'left'  },
-  2: { name:'Scale column on the right', side:'right' }
+  1: { name:'Wave mark + surge',      cell:'wave' },
+  2: { name:'Next high water leads',  cell:'next' },
+  3: { name:'Mini tide curve',        cell:'spark' }
 };
 const KEYS = Object.keys(VARIANTS);
 const current = () => { const v = new URLSearchParams(location.search).get('variant'); return KEYS.includes(v)?v:'1'; };
@@ -481,15 +524,18 @@ function go(k){ const u = new URL(location.href); u.searchParams.set('variant',k
 
 function draw() {
   const k = current();
-  SIDE = VARIANTS[k].side;
+  CELL = VARIANTS[k].cell;
   document.getElementById('app').innerHTML = render();
   vname.textContent = VARIANTS[k].name;
-  vkey.textContent = `scale ${SIDE} · water: ${DATUM==='abs'?'absolute cm':'vs mean'} · L W D`;
+  vkey.textContent = `top water cell ${k}/3 · L labels · W day strip`;
   const sc = document.getElementById('sc'), pill = document.getElementById('daypill');
   const upd = () => {
-    const t = H0 + sc.scrollLeft / PXH + 1;                 // hour at the left edge
-    pill.querySelector('b').textContent = WD[dayIndex(t)%7];
-    pill.querySelector('span').textContent = dateOf(t);
+    // the hour at the CENTRE of the viewport, so the pill flips as soon as
+    // midnight passes the middle — not once the old day has fully scrolled off
+    const t = H0 + (sc.scrollLeft + sc.clientWidth / 2) / PXH;
+    const d = ((dayIndex(t) % 7) + 7) % 7;
+    pill.querySelector('b').textContent = WD[d];
+    pill.querySelector('span').textContent = dateOf(dayIndex(t) * 24);
     pill.classList.toggle('on', sc.scrollLeft > 18);
   };
   sc.addEventListener('scroll', upd, { passive:true });
@@ -500,7 +546,6 @@ prev.onclick = () => step(-1);
 next.onclick = () => step(1);
 eye.onclick = () => { document.body.classList.toggle('reveal'); eye.classList.toggle('on'); };
 wk.onclick  = () => { document.body.classList.toggle('hide-week'); wk.classList.toggle('on'); };
-dt.onclick  = () => { DATUM = DATUM==='abs'?'rel':'abs'; dt.classList.toggle('on'); draw(); };
 addEventListener('keydown', e => {
   const t = e.target;
   if (t && (t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable)) return;
@@ -508,7 +553,6 @@ addEventListener('keydown', e => {
   if (e.key==='ArrowRight'){ e.preventDefault(); step(1); }
   if (e.key.toLowerCase()==='l') eye.click();
   if (e.key.toLowerCase()==='w') wk.click();
-  if (e.key.toLowerCase()==='d') dt.click();
 });
 draw();
 </script>
