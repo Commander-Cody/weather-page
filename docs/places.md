@@ -48,31 +48,71 @@ the land point seaward instead would quietly degrade the wind and rain forecast.
 
 ## Seed roster
 
-Twenty places. Frisian names are supplied by the repo owner and are deliberately blank
-here — no agent may invent them.
+Twenty places, in two tables that join on `key`. **Names** is the table the repo owner
+fills in. **Gauges** is measured, and should not be hand-edited without re-measuring.
 
-| `key` | German name | `coords_land` | `gauge` | kind | origin | distance |
-| --- | --- | --- | --- | --- | --- | --- |
-| `list` | List auf Sylt | 55.0189, 8.4408 | `list_hafen` | curve | own | 0.2 km |
-| `westerland` | Westerland | 54.9079, 8.3050 | `westerland` | peaks | own | 2.2 km |
-| `hoernum` | Hörnum | 54.7561, 8.2953 | `hoernum_hafen` | curve | own | 0.2 km |
-| `wyk` | Wyk auf Föhr | 54.6906, 8.5678 | `wyk` | peaks | own | 0.6 km |
-| `wittduen` | Wittdün | 54.6314, 8.3856 | `wittduen_hafen` | curve | own | 0.1 km |
-| `hooge` | Hallig Hooge | 54.5747, 8.5461 | `hooge_anleger` | curve | own | 0.8 km |
-| `hamburger-hallig` | Hamburger Hallig | 54.6053, 8.7872 | `der_strand_hamburger_hallig` | peaks | own | 0.0 km |
-| `pellworm` | Pellworm | 54.5222, 8.6472 | `pellworm_anleger` | peaks | own | 4.3 km |
-| `nordstrand` | Nordstrand | 54.4747, 8.8408 | `strucklahnungshoern` | peaks | own | 3.5 km |
-| `husum` | Husum | 54.4764, 9.0514 | `husum_schleuse` | curve | own | 1.8 km |
-| `dagebuell` | Dagebüll | 54.7278, 8.6889 | `dagebuell` | curve | own | 0.3 km |
-| `helgoland` | Helgoland | 54.1825, 7.8869 | `helgoland_binnenhafen` | curve | own | 0.4 km |
-| `klanxbuell` | Klanxbüll | 54.8578, 8.6789 | `osterley` | peaks | borrowed | 7.9 km |
-| `emmelsbuell-horsbuell` | Emmelsbüll-Horsbüll | 54.8514, 8.7194 | `osterley` | peaks | borrowed | 10.5 km |
-| `neukirchen` | Neukirchen | 54.9139, 8.7431 | `osterley` | peaks | borrowed | 14.0 km |
-| `niebuell` | Niebüll | 54.7869, 8.8283 | `dagebuell` | curve | borrowed | 11.0 km |
-| `risum-lindholm` | Risum-Lindholm | 54.7583, 8.8722 | `dagebuell` | curve | borrowed | 12.3 km |
-| `langenhorn` | Langenhorn | 54.6944, 8.9000 | `schluettsiel` | peaks | borrowed | 9.4 km |
-| `bredstedt` | Bredstedt | 54.6208, 8.9789 | `der_strand_hamburger_hallig` | peaks | borrowed | 12.5 km |
-| `toenning` | Tönning | 54.3167, 8.9444 | `eider-sperrwerk_aussenpegel` | curve | borrowed | 8.7 km |
+### Names
+
+`name_frisian` is blank on every row — **no agent may invent these**. Fill in the Mooring
+form where one exists and the local variety otherwise, and set `variety` to say which.
+Where you are unsure, put the German name in `name_frisian`, leave `variety` empty, and
+add the place to the batch list for a fluent speaker.
+
+| `key` | `name_frisian` | `variety` | `name_german` |
+| --- | --- | --- | --- |
+| `list` | List | Sölring | List auf Sylt |
+| `westerland` | Weesterlönj | Mooring | Westerland |
+| `hoernum` | Hörnem | Sölring | Hörnum |
+| `wyk` | e Wik | Mooring | Wyk auf Föhr |
+| `wittduen` | Witdöön | Mooring | Wittdün |
+| `hooge` | e Huuge | Mooring | Hallig Hooge |
+| `hamburger-hallig` | Hamborjer Håli | Mooring | Hamburger Hallig |
+| `pellworm` | Pelweerm | Mooring | Pellworm |
+| `nordstrand` | e Strönj | Mooring | Nordstrand |
+| `husum` | Hüsem | Mooring | Husum |
+| `dagebuell` | Doogebel | Mooring | Dagebüll |
+| `helgoland` | Hålilönj | Mooring | Helgoland |
+| `klanxbuell` | Klångsbel | Mooring | Klanxbüll |
+| `emmelsbuell-horsbuell` | Ämesbel-Horbel | Mooring | Emmelsbüll-Horsbüll |
+| `neukirchen` | Naischöspel | Mooring | Neukirchen |
+| `niebuell` | Naibel | Mooring | Niebüll |
+| `risum-lindholm` | Risem-Lunham | Mooring | Risum-Lindholm |
+| `langenhorn` | e Horne | Mooring | Langenhorn |
+| `bredstedt` | Bräist | Mooring | Bredstedt |
+| `toenning` | Taning | Mooring | Tönning |
+
+Expected varieties, as a starting point only: Söl'ring on Sylt (`list`, `westerland`,
+`hoernum`), Fering on Föhr (`wyk`), Öömrang on Amrum (`wittduen`), Halligfriesisch on
+`hooge` and `hamburger-hallig`, Wiedingharder on `klanxbuell`, `emmelsbuell-horsbuell`
+and `neukirchen`, Mooring on the rest. Halunder on `helgoland` is its own case. Any of
+these is overridden by a Mooring form where one exists.
+
+### Gauges
+
+`coords_sea` is not in this table yet — none have been picked. See the gap list.
+
+| `key` | `coords_land` | `gauge` | kind | origin | distance |
+| --- | --- | --- | --- | --- | --- |
+| `list` | 55.0189, 8.4408 | `list_hafen` | curve | own | 0.2 km |
+| `westerland` | 54.9079, 8.3050 | `westerland` | peaks | own | 2.2 km |
+| `hoernum` | 54.7561, 8.2953 | `hoernum_hafen` | curve | own | 0.2 km |
+| `wyk` | 54.6906, 8.5678 | `wyk` | peaks | own | 0.6 km |
+| `wittduen` | 54.6314, 8.3856 | `wittduen_hafen` | curve | own | 0.1 km |
+| `hooge` | 54.5747, 8.5461 | `hooge_anleger` | curve | own | 0.8 km |
+| `hamburger-hallig` | 54.6053, 8.7872 | `der_strand_hamburger_hallig` | peaks | own | 0.0 km |
+| `pellworm` | 54.5222, 8.6472 | `pellworm_anleger` | peaks | own | 4.3 km |
+| `nordstrand` | 54.4747, 8.8408 | `strucklahnungshoern` | peaks | own | 3.5 km |
+| `husum` | 54.4764, 9.0514 | `husum_schleuse` | curve | own | 1.8 km |
+| `dagebuell` | 54.7278, 8.6889 | `dagebuell` | curve | own | 0.3 km |
+| `helgoland` | 54.1825, 7.8869 | `helgoland_binnenhafen` | curve | own | 0.4 km |
+| `klanxbuell` | 54.8578, 8.6789 | `osterley` | peaks | borrowed | 7.9 km |
+| `emmelsbuell-horsbuell` | 54.8514, 8.7194 | `osterley` | peaks | borrowed | 10.5 km |
+| `neukirchen` | 54.9139, 8.7431 | `osterley` | peaks | borrowed | 14.0 km |
+| `niebuell` | 54.7869, 8.8283 | `dagebuell` | curve | borrowed | 11.0 km |
+| `risum-lindholm` | 54.7583, 8.8722 | `dagebuell` | curve | borrowed | 12.3 km |
+| `langenhorn` | 54.6944, 8.9000 | `schluettsiel` | peaks | borrowed | 9.4 km |
+| `bredstedt` | 54.6208, 8.9789 | `der_strand_hamburger_hallig` | peaks | borrowed | 12.5 km |
+| `toenning` | 54.3167, 8.9444 | `eider-sperrwerk_aussenpegel` | curve | borrowed | 8.7 km |
 
 **Twelve places have their own gauge, eight borrow. Ten get a curve, ten get peaks only.**
 That last split is the important one: under this rule the peaks-only water lane is not an
@@ -114,10 +154,8 @@ seaward of the barrage — so it reflects the sea, not the impounded river.
 
 ## Known gaps
 
-- **Every Frisian name.** Supplied by the repo owner, in Mooring where a Mooring form
-  exists and in the local variety otherwise — Söl'ring for Sylt, Fering for Föhr, Öömrang
-  for Amrum, Wiedingharder for the Wiedingharde. Anything uncertain gets the German name
-  and an entry on the owner's batch list for a fluent speaker.
+- **Every Frisian name.** All 20 rows of the Names table are blank. Filled in by the repo
+  owner; see the instructions above that table.
 - **Every `coords_sea`.** None picked yet. Each needs to be a point Open-Meteo's Marine
   API confirms is water, by returning coordinates close to the ones requested.
 - **`coords_land` for the smaller places is provisional.** The Wiedingharde and inland
