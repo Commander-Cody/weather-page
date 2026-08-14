@@ -138,9 +138,14 @@ offshore in the Wadden Sea, is the nearest thing and is what the three Wiedingha
 use. It runs only 15 minutes from `dagebuell` at high water, so either would be
 defensible — `osterley` wins on being the water those villages actually look at.
 
-**`suedwesthoern` is the preferred Wiedingharde source, but is not available yet.** It
-exists on BSH's *other* product, the tide calculator at `gezeiten.bsh.de`, flagged as an
-interpolated gauge. That product is not CC BY 4.0 — see the gap list below.
+**`suedwesthoern` is not usable, and this is settled.** It exists on BSH's *other*
+product, the tide calculator at `gezeiten.bsh.de`, but as an *Interpolierter Pegel* — and
+BSH's own station page says „Keine Gezeitenhöhen und Niedrigwasserangaben verfügbar, NW
+fällt trocken". It publishes high-water **times** only, carried across at a fixed offset
+from Helgoland, with no heights and no low water at all. Every height on this page is a
+**deviation**, so a source with no per-event height is not a source. The licence turned
+out to be fine; the station does not. `osterley` stays. See
+[issue #12](https://github.com/Commander-Cody/weather-page/issues/12).
 
 **Langenhorn** takes `schluettsiel` as the nearest gauge, 9.4 km. `der_strand_hamburger_hallig`
 at 12.5 km is the alternative if the Hamburger Hallig shore turns out to be the coast
@@ -161,26 +166,52 @@ seaward of the barrage — so it reflects the sea, not the impounded river.
 - **`coords_land` for the smaller places is provisional.** The Wiedingharde and inland
   coordinates are estimates and should be confirmed. Treat them as approximate: the first
   estimate of Südwesthörn's position in this effort was 8 km out.
-- **Sankt Peter-Ording is not in the roster.** It has no gauge in the forecast API at all,
-  and was cut as primarily a tourist town. It *does* exist on the tide calculator as
-  `st-peter-ording_bad`, so it becomes a candidate if that product turns out to be usable.
+- **Sankt Peter-Ording is not in the roster, and the tide calculator does not change
+  that.** It has no gauge in the forecast API at all, and was cut as primarily a tourist
+  town. It exists on the tide calculator as `st-peter-ording_bad`, but that station is an
+  *Interpolierter Pegel* publishing „Keine Gezeitenhöhen" — times only, no heights, so it
+  cannot produce a deviation. The product is usable; that station is not
+  ([#12](https://github.com/Commander-Cody/weather-page/issues/12)).
 - **Places named but not yet placed**: Ockholm, Alkersum, Süderende. Adding them needs a
   gauge decision each and a Frisian name, nothing more.
 
-## The tide calculator, if its licence permits
+## The tide calculator
 
-`gezeiten.bsh.de` carries **39 stations in this region against the forecast API's 23**,
-including `suedwesthoern`, `st-peter-ording_bad`, `langeness_nord`, `langeness_hilligenley`,
-`rantumdamm`, `list_west`, `hoernum_west`, `nordstrandischmoor`, `holmer_siel` and
-`everschopsiel`. It offers a **curve** text file per station, which is exactly what the
-peaks-only gauges lack.
+**Its licence permits republishing.** Settled by
+[issue #12](https://github.com/Commander-Cody/weather-page/issues/12): Anlage 4 of BSH's
+*Entgeltverzeichnis* declares use of the digital tide data free of charge, expressly
+including commercial use and publication, with no written consent needed. No fee attaches
+to the download or to the republishing. Whether to *take* it is
+[#18](https://github.com/Commander-Cody/weather-page/issues/18); the attribution it drags
+along is [#19](https://github.com/Commander-Cody/weather-page/issues/19).
 
-It is astronomical only — no surge, no measurement — and it arrives as a per-station,
-per-calendar-year download rather than an API, with next year's file appearing around
-August. Downloading requires accepting BSH's fee schedule for digital data and separate
-usage conditions for tide data, which is a different licence world from the forecast API's
-CC BY 4.0.
+`gezeiten.bsh.de` carries **36 stations in this region against the forecast API's 23** —
+not the 39 first estimated. It is astronomical only: no surge, no measurement, and current
+wind explicitly not accounted for. It arrives as a per-station, per-calendar-year download
+rather than an API, with next year's file appearing around August, and **BSH hosts only
+two years at a time** — so a stored copy is the archive, not a cache.
 
-If those terms permit republishing, the better design is a **local astronomical curve from
-the tide calculator paired with a borrowed surge from the nearest forecast gauge** — which
-serves the pairing rule above better than either product alone. That question is open.
+**What it would change, measured.** Six stations that the forecast API serves as
+peaks-only gauges have a full-year astronomical curve here:
+
+| Station | Place affected |
+| --- | --- |
+| `westerland` | `westerland` |
+| `wyk` | `wyk` |
+| `pellworm_anleger` | `pellworm` |
+| `strucklahnungshoern` | `nordstrand` |
+| `schluettsiel` | `langenhorn` (borrowed) |
+| `meldorf_sperrwerk_aussenpegel` | — outside the roster |
+
+**So five of the ten peaks-only places could take a local astronomical curve.**
+`osterley` and `der_strand_hamburger_hallig` have no curve file, so `klanxbuell`,
+`emmelsbuell-horsbuell`, `neukirchen`, `hamburger-hallig` and `bredstedt` are unchanged.
+The candidate design is a **local astronomical curve from the tide calculator paired with
+a borrowed surge from the nearest forecast gauge**, which serves the pairing rule better
+than either product alone — instead of borrowing a neighbour's whole curve, only the surge
+is borrowed and the local timing survives.
+
+Three things a later change has to carry: the tide calculator is in **metres** where the
+forecast API is centimetres; its times are **year-round MEZ** where the forecast API uses
+switching legal time; and a place drawing both needs a registry field saying where its
+astronomical tide comes from, separately from `gauge`.
