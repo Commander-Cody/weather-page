@@ -102,9 +102,24 @@ Two file-level differences remain in every configuration and are not cell damage
   default options preserved it, and every run passing charset `76` (UTF-8) lost it.
 
 Neither corrupts a string, but both matter for #8's re-import safeguard — "diff the other
-columns and reject any change". A raw diff of a returned file reports every line as
-changed, and a reviewer who sees a wall of red stops reading. **Normalise BOM and line
-endings before diffing**, or the safeguard is noise.
+columns and reject any change".
+
+**Measured, and the safeguard holds up well.** Committing the original, overwriting it
+with the LibreOffice output and running `git diff` produced **six changed lines**: one for
+the dropped BOM, five for the actually-mangled cells. The damage is obvious at a glance,
+not buried.
+
+That result depends on `core.autocrlf=true`, which is set on the owner's machine and
+silently normalises CRLF back to LF on commit. It is **local git config, not repo
+config** — a fresh clone or a Linux CI runner without it would diff every line as changed
+and bury the five real ones. Pin it with a `.gitattributes`:
+
+```
+*.csv text eol=lf
+```
+
+That makes commit-time normalisation a property of the repo, so the safeguard survives
+being run somewhere other than this laptop.
 
 ## Not tested
 
