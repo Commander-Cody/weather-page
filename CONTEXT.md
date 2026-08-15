@@ -97,3 +97,40 @@ A separate water coordinate a place's sea temperature is read at, kept apart fro
 land point because the Marine API returns a value for land too. Validated by comparing
 the coordinates requested against the coordinates returned.
 _Avoid_: marine coordinates, water position
+
+### Variety and translation
+
+**Variety**:
+One of the North Frisian varieties the page can be read in. A property of the reader, not
+of the place — a Fering reader sees Fering on every page, including mainland ones. Mooring
+at launch, Fering planned.
+_Avoid_: locale, dialect, language
+
+**Built variety**:
+A variety named in the Astro config and therefore rendered, linked and published. A
+variety whose column is incomplete is simply not built; only a built variety can fail the
+build for a missing string.
+_Avoid_: enabled language, active locale, supported language
+
+**Native name**:
+What a place is called on its own coast, recorded together with the variety that name
+belongs to. It is the label every reader sees unless their own variety overrides it.
+_Avoid_: default name, local name, endonym
+
+**Variety override**:
+A per-variety form of a place name, replacing the native name for readers of that variety.
+Absent by default — a variety carries an override only where it genuinely differs, or to
+record that a fluent speaker confirmed it does not.
+_Avoid_: translation, per-locale name, localised name
+
+**Unresolved name**:
+A place whose native name is in a variety other than the reader's and which that variety
+has not overridden. It still shows the native name; the state exists to raise a question
+for a fluent speaker, never to change the page.
+_Avoid_: missing name, untranslated place
+
+**Batch list**:
+The generated list of open language questions for a fluent speaker: empty cells in a built
+variety, unresolved names, and strings whose wording is written but unverified. Derived
+from the language file, never kept by hand.
+_Avoid_: todo list, translation queue
