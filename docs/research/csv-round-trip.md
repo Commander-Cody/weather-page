@@ -13,7 +13,7 @@ including a German locale, not one Frisian character changed: `å ä ö ü`, the
 vowels `åå ää öö üü`, the palatal digraphs `dj lj nj tj`, and the apostrophe in
 `Söl'ring` all came back byte-for-byte.
 
-What does not survive is **numbers**. Four cells were silently rewritten, and the
+What does not survive is **numbers**. Five cells were silently rewritten, and the
 character-set check from #8 does not notice.
 
 ## The corruption everyone expects does not happen; a different one does
@@ -48,7 +48,7 @@ mojibake produces characters outside the alphabet". That is true of encoding cor
 and false of everything else. Two concrete misses:
 
 **1. It cannot see value coercion.** Run against the LibreOffice output above — the one
-with four rewritten cells — the checker returns `PASS`. `5000` and `2` are made entirely
+with five rewritten cells — the checker returns `PASS`. `5000` and `2` are made entirely
 of legal characters. A character-set check is the wrong instrument for this class of
 damage; the defence is #8's *other* safeguard, the column diff.
 
