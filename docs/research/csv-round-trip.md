@@ -4,17 +4,20 @@ Findings for [#20](https://github.com/Commander-Cody/weather-page/issues/20). Ga
 CSV format choice made in [#8](https://github.com/Commander-Cody/weather-page/issues/8).
 
 Harness lives in `docs/research/csv-round-trip/`. Everything below is measured, not
-reasoned about. The Google Sheets leg is **not** covered — see [Not tested](#not-tested).
+reasoned about.
 
 ## Short answer
 
-**Mooring orthography survives LibreOffice intact.** Across four filter configurations
-including a German locale, not one Frisian character changed: `å ä ö ü`, the doubled
-vowels `åå ää öö üü`, the palatal digraphs `dj lj nj tj`, and the apostrophe in
-`Söl'ring` all came back byte-for-byte.
+**Yes. Mooring orthography survives a spreadsheet round-trip intact, in both editors.**
+Across four LibreOffice filter configurations including a German locale, and three Google
+Sheets passes, not one Frisian character changed: `å ä ö ü`, the doubled vowels
+`åå ää öö üü`, the palatal digraphs `dj lj nj tj`, and the apostrophe in `Söl'ring` all
+came back byte-for-byte. #8's CSV choice stands; the YAML fallback is not needed.
 
-What does not survive is **numbers**. Five cells were silently rewritten, and the
-character-set check from #8 does not notice.
+What does not survive is **numbers**, and in Sheets, **trailing whitespace**. The
+character-set check from #8 notices none of it.
+
+Five conditions, all cheap, in [Conditions](#conditions-on-the-answer).
 
 ## The corruption everyone expects does not happen; a different one does
 
@@ -121,15 +124,64 @@ and bury the five real ones. Pin it with a `.gitattributes`:
 That makes commit-time normalisation a property of the repo, so the safeguard survives
 being run somewhere other than this laptop.
 
-## Not tested
+## Google Sheets: gentler than LibreOffice, with one behaviour no setting controls
 
-**Google Sheets.** It needs the owner's account, so it could not be driven here. It is
-also the more aggressive coercer of the two, and its parser shares no code with
-LibreOffice — none of the results above transfer to it. Checklist for running that leg is
-in the resolution comment on #20.
+Run by the repo owner, three passes, outputs in `docs/research/csv-round-trip/google-sheets/`.
+
+| pass | cell changes | what changed |
+| --- | --- | --- |
+| convert **on** (the default) | 3 | `007` → `7`, `=1+1` → `2`, `rin ` → `rin` |
+| convert **off** | **1** | `rin ` → `rin` |
+| hand-typed cells | 3 + the typed cells | same as convert-on |
+
+**Turning conversion off reduces the damage to a single class**, and that class is
+whitespace. Sheets was also *less* destructive than LibreOffice on import: `5.000`,
+`1.3.` and the clock strings all survived even with conversion on, where a German-locale
+LibreOffice rewrote the first two.
+
+**The typing test came back clean, which was the least certain part of this.** Autocorrect
+is the one path that fires on a translator rather than on a file, and it did not fire. The
+hand-typed apostrophe came back as **U+0027**, straight, not `’`. The hand-typed
+`å ä ö ü` came back as precomposed **NFC** codepoints, not decomposed. Checked at
+codepoint level rather than by eye, because `å` and `a`+U+030A are indistinguishable on
+screen.
+
+**Trailing whitespace is trimmed unconditionally.** `rin ` came back as `rin` in all three
+passes, including the one with conversion off. No import setting governs this. It is the
+only Sheets behaviour that cannot be switched off, so the language file must never carry
+significant leading or trailing whitespace — spacing belongs around the `{placeholder}`,
+never at a cell edge.
+
+**Neither editor preserves the BOM.** Sheets dropped it in all three passes; LibreOffice
+dropped it whenever the output charset was stated. #8 proposed writing a BOM "so Excel
+reads it correctly", which is still a fine reason to write one — but it is a **one-way
+hint for the first open, not an invariant**. The build and the re-import check must accept
+a file with or without it. Both editors produced correct UTF-8 regardless.
+
+**Locale is part of what must be documented.** The Sheets passes ran under the owner's
+account locale, and `5.000` / `1.3.` surviving is a locale-dependent result — a
+German-locale LibreOffice rewrote both. Turning conversion off makes the question moot,
+which is the main reason to prefer it over relying on any particular locale.
+
+## Conditions on the answer
+
+1. **Turn value conversion off on import.** Sheets: *Convert text to numbers, dates, and
+   formulas* off. LibreOffice: quote every field on write, *quoted field as text* on,
+   *detect special numbers* off. Locale then stops mattering.
+2. **No significant leading or trailing whitespace in any cell** — Sheets trims it and
+   nothing prevents that.
+3. **The character check needs the `?`-position rule and NFC**, and must run three
+   policies, not one.
+4. **Do not depend on the BOM surviving.** Write it, accept its absence.
+5. **Pin line endings** with `*.csv text eol=lf` in a `.gitattributes`.
+
+## Not tested
 
 **The Astro build and the rendered page.** The repo has no Astro install yet. Low risk and
 re-checked when the build exists, per #20.
+
+**Excel.** Not in the chain — the owner uses Sheets and LibreOffice. The BOM is written
+partly for it, so if it ever enters the chain this needs re-running.
 
 ## Harness
 
