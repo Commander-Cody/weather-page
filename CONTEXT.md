@@ -60,6 +60,41 @@ mean low water at lows. Every height on the page is a deviation; absolute centim
 above gauge zero appear nowhere.
 _Avoid_: height, level, absolute height
 
+### Warnings
+
+**Warning slot**:
+The single area above everything else on the page where warnings appear. Absent entirely
+when the sources say nothing, so an empty page is never ambiguous. Holds every live
+warning for the place, whatever its source or rank.
+_Avoid_: warning box, alert banner, warning panel
+
+**Rank**:
+A warning's position on the one four-step ladder the page ranks everything by. DWD's four
+severities occupy 1–4; BSH's three storm surge classes occupy 2–4. Encoded as a count of
+marks so it survives greyscale and needs no language.
+_Avoid_: severity, level, priority
+
+**Warning block**:
+The full-height form a warning takes when it is the highest-ranked one on the page and its
+rank is above 1. At most one exists at a time.
+_Avoid_: alert, banner, card
+
+**Warning line**:
+The compact one-row form every other warning takes. It carries its own rank marks, so it is
+demoted in prominence only, never in meaning.
+_Avoid_: minor warning, secondary alert
+
+**Pre-alert**:
+A warning issued for weather that is expected but has not begun. Not a rank of its own —
+the page organises warnings by whether they are running now or start at a stated time, and
+a pre-alert is the far end of that.
+_Avoid_: Vorabinformation, early warning, advance notice
+
+**Storm surge class**:
+BSH's classification of a storm surge by height above mean high water. Published by BSH as
+a warning; never derived by this page from its own figures, even though it holds them.
+_Avoid_: Sturmflut level, surge severity
+
 ### Places and gauges
 
 **Place**:
