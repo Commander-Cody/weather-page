@@ -93,10 +93,20 @@ itself.
 _Avoid_: coordinates, position
 
 **Sea point**:
-A separate water coordinate a place's sea temperature is read at, kept apart from the
-land point because the Marine API returns a value for land too. Validated by comparing
-the coordinates requested against the coordinates returned.
+The water coordinate a sea temperature is read at. It belongs to the **gauge**, not to the
+place — a place reads the temperature of the same water its tide comes from, so an inland
+place shares the sea point of the gauge it already borrows. Kept apart from the land point
+because the Marine API returns a value for land too, and validated by comparing the
+coordinates requested against the coordinates returned. Fifteen of them serve twenty
+places.
 _Avoid_: marine coordinates, water position
+
+**Place registry**:
+The single file holding every place and every gauge as data — keys, coordinates, gauge
+pairings and measured numbers. It carries **no human-language text**: every name a reader
+sees lives in the language file instead, and the registry keeps only the variety code
+saying which column that name is in.
+_Avoid_: places file, place list, config
 
 ### Variety and translation
 
@@ -113,8 +123,9 @@ build for a missing string.
 _Avoid_: enabled language, active locale, supported language
 
 **Native name**:
-What a place is called on its own coast, recorded together with the variety that name
-belongs to. It is the label every reader sees unless their own variety overrides it.
+What a place or a gauge is called on its own coast. It is the label every reader sees
+unless their own variety overrides it. The name itself lives in the language file, in the
+column of the variety it is in; the registry records only which variety that is.
 _Avoid_: default name, local name, endonym
 
 **Variety override**:
