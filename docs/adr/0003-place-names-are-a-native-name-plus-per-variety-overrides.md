@@ -39,10 +39,10 @@ sit on the batch list forever as noise.
 
 ## Consequences
 
-- **Overrides live in the language file, not the place registry.** A Fering override is
-  translator knowledge, and it belongs where the translator works — so adding a variety
-  never requires editing the registry. The cost is that a place's forms are split across
-  two artifacts rather than visible on one row.
+- **Names live in the language file, not the place registry.** A name is translator
+  knowledge, and it belongs where the translator works — so adding a variety never
+  requires editing the registry. *(Originally this applied only to overrides, and the
+  split it caused was recorded here as a cost. See the amendment below.)*
 - **Place names use their own fallback chain, and it is not the general one.** It is
   `override(variety) → native name`, a single step. It must not fall through Mooring on
   the way: a Fering reader with no override for List should see the native `List`, not a
@@ -56,3 +56,38 @@ sit on the batch list forever as noise.
   migration — that is the mechanism working as designed.
 - **Nothing here applies to the interface.** Every string around the name is translated
   normally. Only the name itself is fixed against the reader's variety.
+
+## Amendment — the native name moves to the language file
+
+Decided on [#21](https://github.com/Commander-Cody/weather-page/issues/21), which settled
+the machine-readable form of the place registry.
+
+This ADR originally kept the native name in the registry and put only overrides in the
+language file, and it named the resulting split as its own cost: *"a place's forms are
+split across two artifacts rather than visible on one row."* That cost is now gone.
+
+**Every form of a name lives in the language file**, in the column of the variety it
+belongs to. A native name is not a special kind of string — it is the name in *some*
+variety, which simply is not always the reader's. `List` sits in the `soelring` column,
+`Hüsem` in the `mooring` column, and an override sits in the column of the variety that
+wrote it. The CSV grid is unchanged; a variety that is never built costs nothing, which
+#8 already established.
+
+The registry keeps **`native_variety`** — a variety code, not a name — saying which column
+holds the native name. It has to stay. The moment a second variety writes an override, two
+columns are filled, and "the one non-empty column is the native one" stops identifying
+anything. It remains the sole input to the unresolved-name derivation described above.
+
+Two rules follow.
+
+- **The cell named by `native_variety` is required.** Empty fails the build: a place with
+  no name at all is broken, not merely untranslated. Every other cell in the row stays
+  optional, which is this ADR's original rule unchanged — an absent override is a correct
+  outcome, not an omission.
+- **Gauge names work identically.** ADR-0002 requires the gauge to be named on every
+  place, borrowed or not, so a gauge carries its own `native_variety` and its own
+  `gauges.<key>.name` row. Where a gauge sits at a place already in the roster the two
+  names often match, and are written twice **on purpose**: a gauge is not its place.
+  `husum_schleuse` is a lock rather than the town, `der_strand_hamburger_hallig` is one
+  spot on the Hallig, and Pellworm has a second gauge that has to stay tellable apart from
+  the first. Duplication that is allowed to diverge is the correct shape here.

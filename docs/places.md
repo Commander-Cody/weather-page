@@ -48,6 +48,15 @@ the land point seaward instead would quietly degrade the wind and rain forecast.
 
 ## Seed roster
 
+> **These tables are not the roster's final home.**
+> [#21](https://github.com/Commander-Cody/weather-page/issues/21) settled that the build
+> reads a single JSON file — places and gauges as data, no human-language text — and that
+> every name lives in the language CSV. The tables below stay only until that file and
+> that CSV exist, and are deleted then. The prose around them stays.
+> The field list under **Fields** describes this table, not the JSON: `notes` is dropped,
+> and `gauge_kind` and `coords_sea` move onto the gauge, which is a record in its own
+> right. See the resolution on #21 for the shape.
+
 Twenty places, in two tables that join on `key`. **Names** is the table the repo owner
 fills in. **Gauges** is measured, and should not be hand-edited without re-measuring.
 
@@ -168,10 +177,10 @@ seaward of the barrage — so it reflects the sea, not the impounded river.
 
 ## Known gaps
 
-- **Every Frisian name.** All 20 rows of the Names table are blank. Filled in by the repo
-  owner; see the instructions above that table.
-- **Every `coords_sea`.** None picked yet. Each needs to be a point Open-Meteo's Marine
-  API confirms is water, by returning coordinates close to the ones requested.
+- **Every sea point.** None picked yet, and there are **fifteen** — one per gauge, not one
+  per place ([#21](https://github.com/Commander-Cody/weather-page/issues/21)). Each needs
+  to be a point Open-Meteo's Marine API confirms is water, by returning coordinates close
+  to the ones requested.
 - **`coords_land` for the smaller places is provisional.** The Wiedingharde and inland
   coordinates are estimates and should be confirmed. Treat them as approximate: the first
   estimate of Südwesthörn's position in this effort was 8 km out.
