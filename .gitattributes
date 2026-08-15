@@ -1,0 +1,17 @@
+# The language file is a CSV that goes out to translators and comes back through a
+# spreadsheet, and both LibreOffice and Google Sheets always write CRLF.
+#
+# #8's re-import safeguard is "diff the other columns and reject any change". That only
+# reads if line endings are normalised first -- otherwise a returned file diffs as every
+# line changed, and the handful of real changes are buried in it.
+#
+# Measured on #20, same returned file with five mangled cells, autocrlf switched off to
+# stand in for a Linux CI runner:
+#
+#   with this rule:     6 changed lines  (the BOM, plus the five real ones)
+#   without this rule:  54 changed lines (every line in the file)
+#
+# It was working already via core.autocrlf=true -- but that is set at machine level on
+# the owner's Windows install, not in this repo, so nothing carries it to a fresh clone
+# or to CI. This line does.
+*.csv text eol=lf

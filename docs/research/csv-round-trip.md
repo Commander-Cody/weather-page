@@ -112,17 +112,25 @@ with the LibreOffice output and running `git diff` produced **six changed lines*
 the dropped BOM, five for the actually-mangled cells. The damage is obvious at a glance,
 not buried.
 
-That result depends on `core.autocrlf=true`, which is set on the owner's machine and
-silently normalises CRLF back to LF on commit. It is **local git config, not repo
-config** — a fresh clone or a Linux CI runner without it would diff every line as changed
-and bury the five real ones. Pin it with a `.gitattributes`:
+That result depended on `core.autocrlf=true`, which normalises CRLF back to LF on commit.
+It is set at **machine level on the owner's Windows install, not in this repo**, so
+nothing carried it to a fresh clone or to CI.
+
+**Now pinned** in `.gitattributes`:
 
 ```
 *.csv text eol=lf
 ```
 
-That makes commit-time normalisation a property of the repo, so the safeguard survives
-being run somewhere other than this laptop.
+Verified by switching `core.autocrlf` off to stand in for a Linux CI runner and diffing
+the same returned file both ways:
+
+| | changed lines |
+| --- | --- |
+| with the rule | **6** — the dropped BOM plus the five real changes |
+| without it | **54** — every line in the file |
+
+So the safeguard now survives being run somewhere other than this laptop.
 
 ## Google Sheets: gentler than LibreOffice, with one behaviour no setting controls
 
