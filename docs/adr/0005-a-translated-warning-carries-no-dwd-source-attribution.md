@@ -24,5 +24,12 @@ than to each warning, and DWD is also named in the Impressum.
   Mooring label carrying the German proper name satisfies the obligation without breaking the rule.
 - **If a warning were ever shown verbatim in German, the normal rule returns** and it would need
   `Quelle: Deutscher Wetterdienst` next to it. The page does not do this today.
-- Where this credit line sits relative to the page's three other credit lines, whose rules conflict
-  with each other, is decided separately.
+- **This ADR is about DWD, and must not be generalised to warnings as a class.** BSH storm surge
+  warnings share the same slot under ADR-0004, and their rule is the opposite one: CC BY 4.0 keeps
+  attribution on a translation and additionally requires a licence link and an indication that the
+  text was changed. So one warning slot carries two contradictory obligations, sorted by an agency
+  the reader is never told about directly. Establishing which surge warning the page shows is a
+  separate decision; how the two rules coexist in one slot belongs with the page's other credit
+  lines.
+- Where this credit line sits relative to the page's other credit lines, whose rules conflict with
+  each other, is decided separately.
