@@ -27,8 +27,8 @@ Each place carries:
 | Field | Meaning |
 | --- | --- |
 | `key` | Stable slug. Appears in the URL. Never changes once published. |
-| `name_frisian` | The label the reader sees. |
-| `variety` | Which Frisian variety `name_frisian` is in — Mooring unless noted. |
+| `name_frisian` | The **native name** — what the place is called on its own coast. The label every reader sees unless their own variety overrides it. |
+| `variety` | **Only** which variety `name_frisian` is in. Provenance, not a judgement about any other variety. See below. |
 | `name_german` | Shown smaller, alongside. |
 | `coords_land` | Forecast point for wind, rain, temperature. The settlement itself. |
 | `coords_sea` | Separate point for sea temperature — see below. |
@@ -53,10 +53,9 @@ fills in. **Gauges** is measured, and should not be hand-edited without re-measu
 
 ### Names
 
-`name_frisian` is blank on every row — **no agent may invent these**. Fill in the Mooring
-form where one exists and the local variety otherwise, and set `variety` to say which.
-Where you are unsure, put the German name in `name_frisian`, leave `variety` empty, and
-add the place to the batch list for a fluent speaker.
+**No agent may invent these.** Fill in the Mooring form where one exists and the local
+variety otherwise, and set `variety` to say which. Where you are unsure, put the German
+name in `name_frisian` and leave `variety` empty.
 
 | `key` | `name_frisian` | `variety` | `name_german` |
 | --- | --- | --- | --- |
@@ -86,6 +85,21 @@ Expected varieties, as a starting point only: Söl'ring on Sylt (`list`, `wester
 `hooge` and `hamburger-hallig`, Wiedingharder on `klanxbuell`, `emmelsbuell-horsbuell`
 and `neukirchen`, Mooring on the rest. Halunder on `helgoland` is its own case. Any of
 these is overridden by a Mooring form where one exists.
+
+### Names across varieties
+
+A place has **one** name here, and a variety overrides it only where its own form genuinely
+differs. Per-variety overrides do **not** live in this file — they live in the language CSV,
+alongside everything else a translator writes. Recorded as
+[ADR-0003](adr/0003-place-names-are-a-native-name-plus-per-variety-overrides.md).
+
+So `variety` says nothing about any variety other than the one it names. `list` is tagged
+Sölring because that is what the name is; it does not claim Mooring has no form of its own,
+and it does not claim Mooring uses this one. That question is **derived**, not stored — a
+name is unresolved for a reader when its `variety` is not the reader's variety and that
+variety has no override. Today that is `list` and `hoernum`.
+
+The batch list is generated from this and from the language CSV. It is not kept by hand.
 
 ### Gauges
 
