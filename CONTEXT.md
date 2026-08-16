@@ -98,9 +98,12 @@ _Avoid_: Sturmflut level, surge severity
 ### Places and gauges
 
 **Place**:
-One of the curated locations the page covers, with its own URL and its own page. A row in
-the place registry, not a design decision — adding one costs a row and a Frisian name.
-_Avoid_: location, station, city
+One of the curated locations the page covers, with its own URL and its own page. A
+**settlement**, not an administrative unit — the two usually coincide, and where they do not
+the page takes the settlement and lets the municipality survive only as a hand-paired value.
+A row in the place registry, not a design decision — adding one costs a row and a Frisian
+name.
+_Avoid_: location, station, city, municipality
 
 **Own gauge**:
 The tide gauge at the place itself. Always preferred, even when it carries only peaks.
@@ -123,8 +126,10 @@ which its astronomical curve is interpolated by us from the peaks.
 _Avoid_: partial gauge, degraded gauge
 
 **Land point**:
-The coordinates a place's wind, rain and temperature forecast is read at. The settlement
-itself.
+The coordinates a place's wind, rain and temperature forecast is read at: the inhabited
+centre the place is named after, never a municipality's centroid. Confirmed once against an
+outside authority and thereafter carrying its provenance, because nothing automatic can tell
+a plausible land point from the right one.
 _Avoid_: coordinates, position
 
 **Sea point**:
@@ -142,6 +147,19 @@ pairings and measured numbers. It carries **no human-language text**: every name
 sees lives in the language file instead, and the registry keeps only the variety code
 saying which column that name is in.
 _Avoid_: places file, place list, config
+
+**Hand-paired value**:
+A registry value a human chose that nothing else we hold can derive, and that fails silently
+when wrong because the source answers a wrong one as readily as a right one. Four of them:
+the gauge, the land point, the sea point, and the DWD municipality name. Each is verified
+against the source that consumes it, never against a status code.
+_Avoid_: manual field, config value, magic number
+
+**Provenance**:
+What a hand-paired value was confirmed against, and when. Recorded in the same form for all
+four, because a check can catch a value that has drifted but never one that was wrong on the
+day it was written.
+_Avoid_: source, origin, audit trail
 
 ### Variety and translation
 
