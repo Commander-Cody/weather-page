@@ -54,11 +54,36 @@ gap between it and the astronomical tide is what the page exists to show. Unlike
 astronomical tide, it goes stale quickly. Mooring: `korigiird (wååderpäägel)forütseeding`.
 _Avoid_: real tide, actual level
 
+**Surge horizon**:
+The moment a gauge's surge-corrected forecast runs out, after which the page has only
+astronomy. About 18 hours ahead at a peaks-only gauge and beyond the chart's 48 hours at a
+curve gauge. Not a fixed offset — the measured reach runs 15.6 to 18.5 hours and shrinks as
+a run ages, so it is always read from the data and never hard-coded. Named to the minute in
+the freshness line, and never drawn on the chart.
+_Avoid_: cutoff, seam, forecast limit, the 18-hour mark
+
+**Peak value chain**:
+The order in which a high or low water's height is resolved: official forecast, then MOS
+peaks r0 through r5, then the maximum of the curve, then no number. Every gauge walks the
+identical chain and simply falls to different depths in it. Which depth was reached is never
+shown to the reader.
+_Avoid_: fallback, source priority, tiers
+
 **Deviation**:
 How far a high or low water sits above or below its normal — mean high water at highs,
 mean low water at lows. Every height on the page is a deviation; absolute centimetres
-above gauge zero appear nowhere.
+above gauge zero appear nowhere. **A deviation on screen means the page holds a
+surge-corrected value**; where the peak value chain falls through to astronomy the number is
+withdrawn rather than weakened, because an astronomical deviation is indistinguishable from a
+surge-corrected one and can differ in sign.
 _Avoid_: height, level, absolute height
+
+**Current water level**:
+The water level observed right now. It appears **nowhere on the page**, because BSH publishes
+`measurement` only inside the `curve` object and 14 of the 23 gauges have no curve — so it is
+absent, not stale, at half the roster. The header therefore leads with the next high water
+instead. Wanted for a later version, which needs a fourth source.
+_Avoid_: measurement, actual level, live level, now
 
 ### Warnings
 
@@ -122,7 +147,8 @@ _Avoid_: full gauge, good gauge
 **Peaks-only gauge**:
 A gauge publishing high and low water times and heights but no curve. Same 5.7-day peak
 horizon as a curve gauge, but the surge correction reaches only about 18 hours — after
-which its astronomical curve is interpolated by us from the peaks.
+which its astronomical curve is interpolated by us from the peaks. Carrying no curve also
+means carrying no observed water level at all, past or present.
 _Avoid_: partial gauge, degraded gauge
 
 **Land point**:
