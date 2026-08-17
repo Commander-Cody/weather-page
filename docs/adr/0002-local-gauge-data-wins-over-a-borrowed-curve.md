@@ -45,7 +45,9 @@ So the real difference is not markers versus a line. It is the surge being visib
   onward. One behaviour to build, not two.
 - **Inside the 48-hour fused chart, a peaks-only place has a surge gap for the first
   ~18 hours and nothing but astronomy for the remaining 30.** How that boundary is shown
-  to the reader is not decided here.
+  to the reader is settled by
+  [ADR-0007](0007-a-weaker-water-claim-is-shown-by-removing-not-relabelling.md): by
+  subtraction only, with no mark drawn and the end time stated in words.
 - **The gauge is named on every place, borrowed or not.** A label that appears only on
   borrowed places is a warning marker that then needs explaining in Mooring. A constant
   gauge name under the water lane needs no translation and is honest everywhere.
