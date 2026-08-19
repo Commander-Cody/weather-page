@@ -22,7 +22,10 @@ _Avoid_: last updated, refresh age
 
 **Staleness threshold**:
 The data age past which a source stops presenting itself as current. One per source, set
-at that source's normal worst-case data age plus one missed publication.
+at that source's normal worst-case data age plus one missed publication. A chain of models
+published under a single name is **several** sources, so each stretch of the horizon is aged
+against the model that actually supplied it, and one page can be current in one stretch and
+stale in another.
 _Avoid_: timeout, expiry, TTL
 
 **Stale**:
@@ -39,6 +42,29 @@ _Avoid_: invalid, bad data
 The most recent successfully fetched data for a source, kept on disk and served when a
 later fetch fails. The page degrades by ageing its last good data, not by emptying.
 _Avoid_: cache, fallback
+
+### Weather
+
+**Pinned model**:
+The forecast model the page names in its request, rather than letting the provider choose one
+per coordinate. One model for the whole roster, so no place's weather depends on where it sits
+relative to a boundary the provider does not document. A hand-paired value like the gauge or
+the land point, and verified the same way — by the grid the response comes back on.
+_Avoid_: best match, default model, model selection
+
+**Condition**:
+The single state that describes what the weather is doing in an hour — clear, fog, rain,
+thunderstorm. Taken from the source as a value on a closed list, never assembled by the page
+from cloud cover and rainfall. What it looks like on screen is a separate question from what
+it is.
+_Avoid_: weather type, icon, symbol, state
+
+**Derived condition**:
+A condition the provider computed from other variables because the model behind it publishes
+none of its own. Indistinguishable from a real one in the response and measurably poorer: the
+states that need inputs the derivation lacks — fog, showers, thunderstorm — simply never
+appear, so their absence reads as fair weather. The reason the page names its model.
+_Avoid_: computed condition, fallback condition
 
 ### Water level
 
