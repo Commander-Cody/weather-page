@@ -66,6 +66,26 @@ states that need inputs the derivation lacks — fog, showers, thunderstorm — 
 appear, so their absence reads as fair weather. The reason the page names its model.
 _Avoid_: computed condition, fallback condition
 
+**Sky state**:
+A condition describing the background the sky is against — clear, mainly clear, partly cloudy,
+overcast. The sky is always doing exactly one of them, so there is no such thing as an hour
+without one. Summarised over a stretch of time by asking what it mostly was.
+_Avoid_: cloud state, cloudiness
+
+**Weather state**:
+A condition describing something that happens rather than something that is — fog, drizzle,
+rain, downpour, showers, snow, thunderstorm. Unlike a sky state it can be absent, so it is
+summarised over a stretch of time by asking whether it happened at all, not how long it
+lasted. The split from sky states is what stops a summary from either hiding a thunderstorm
+or turning a broken sky solid grey.
+_Avoid_: precipitation state, event state
+
+**Downpour**:
+The state covering rain falling hard, whether continuously or as a violent shower. Named for
+the quantity of water rather than its character, so that it can hold both, unlike every other
+weather state which is named for character alone. Mooring term outstanding.
+_Avoid_: heavy rain, cloudburst
+
 ### Water level
 
 **Astronomical tide**:
