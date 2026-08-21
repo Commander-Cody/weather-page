@@ -84,18 +84,18 @@ see [`places.md`](places.md).
 
 | Key | English | Mooring |
 |---|---|---|
-| `condition.clear` | clear | |
-| `condition.mainly_clear` | mainly clear | |
-| `condition.partly_cloudy` | partly cloudy | |
-| `condition.overcast` | overcast | |
-| `condition.fog` | fog | |
-| `condition.drizzle` | drizzle | |
-| `condition.rain` | rain | |
-| `condition.downpour` | downpour | |
-| `condition.showers` | showers | |
-| `condition.snow` | snow | |
-| `condition.thunderstorm` | thunderstorm | |
-| `condition.unknown` | unknown | |
+| `condition.clear` | clear | klåår |
+| `condition.mainly_clear` | mainly clear | mååst klåår |
+| `condition.partly_cloudy` | partly cloudy | wat betäägen |
+| `condition.overcast` | overcast | betäägen |
+| `condition.fog` | fog | mist |
+| `condition.drizzle` | drizzle | språnking |
+| `condition.rain` | rain | rin |
+| `condition.downpour` | downpour | gootrin |
+| `condition.showers` | showers | flåågi |
+| `condition.snow` | snow | snii |
+| `condition.thunderstorm` | thunderstorm | tunerwääder |
+| `condition.unknown` | unknown | ünbekånd |
 
 `condition.downpour` is the one to check first. The state was named *downpour* rather than *heavy
 rain* precisely so that codes 65 and 82 — heavy continuous rain and a violent shower — could sit
