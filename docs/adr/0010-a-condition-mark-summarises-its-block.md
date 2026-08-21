@@ -84,5 +84,9 @@ the same reason. The output JSON carries a resolved condition per block.
   weather is doing, precipitation says how much water fell, and rain that fails to register a tenth
   of a millimetre is real. Correcting one source field with another would be authoring.
 - [`docs/condition-icons.md`](../condition-icons.md) — the eleven states and their marks.
-- [#16](https://github.com/Commander-Cody/weather-page/issues/16) — the day card summarises 24 codes,
-  not 3. It may reuse this rule; whether it scales is its own decision.
+- [ADR-0011](0011-a-day-card-is-summarised-by-water-not-by-hours.md) — the day card summarises 24
+  codes, not 3, and **does not reuse this rule**. It could not: at three hours "it happened" means a
+  third of the block, at twenty-four it means 4 %, so one drizzly hour would mark a clear day. The
+  day card is gated on how much water fell instead, and its sky half comes from mean cloud cover
+  rather than from the commonest sky code. Same eleven states, different aggregation
+  ([#16](https://github.com/Commander-Cody/weather-page/issues/16)).
