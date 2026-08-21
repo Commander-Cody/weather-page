@@ -4,9 +4,15 @@ Decided on [#15](https://github.com/Commander-Cody/weather-page/issues/15). Sour
 research on [#11](https://github.com/Commander-Cody/weather-page/issues/11) and reshaped by
 [#14](https://github.com/Commander-Cody/weather-page/issues/14)'s model pin.
 
-**Eleven states, adopted from Meteocons, nothing drawn.** How a mark is chosen for a three-hour
-block is a separate rule, recorded as
-[ADR-0010](adr/0010-a-condition-mark-summarises-its-block.md).
+**Eleven states, adopted from Meteocons, nothing drawn.** How a mark is *chosen* is a separate
+question from what the marks are, and it is answered twice, because the two grains need different
+rules:
+
+- **Three-hour chart blocks** — [ADR-0010](adr/0010-a-condition-mark-summarises-its-block.md): any
+  weather state in the block wins on severity, otherwise the commonest sky state.
+- **Day cards** — [ADR-0011](adr/0011-a-day-card-is-summarised-by-water-not-by-hours.md): gated on
+  how much water fell, with the sky half from mean cloud cover. The day card reaches only **9** of
+  the eleven states; drizzle and downpour are hourly-only.
 
 ## The source
 

@@ -74,11 +74,27 @@ _Avoid_: cloud state, cloudiness
 
 **Weather state**:
 A condition describing something that happens rather than something that is — fog, drizzle,
-rain, downpour, showers, snow, thunderstorm. Unlike a sky state it can be absent, so it is
-summarised over a stretch of time by asking whether it happened at all, not how long it
-lasted. The split from sky states is what stops a summary from either hiding a thunderstorm
-or turning a broken sky solid grey.
+rain, downpour, showers, snow, thunderstorm. Unlike a sky state it can be absent. The split
+from sky states is what stops a summary from either hiding a thunderstorm or turning a broken
+sky solid grey. How it is summarised depends on how long a stretch is being summarised: over a
+few hours, by whether it happened at all; over a whole day, by how much water it delivered,
+because at twenty-four hours "it happened" is satisfied by a single hour.
 _Avoid_: precipitation state, event state
+
+**Day condition**:
+The single state summarising a whole calendar day. Computed by the page, never taken from the
+source: the source does publish a daily value, but it is the numeric maximum of the day's
+hourly codes, which is not a summary of anything and is routinely true for two hours out of
+twenty-four. Reaches fewer states than an hour can — the two that exist only as a character or
+only as an extreme never survive a whole day's summary.
+_Avoid_: daily code, day icon, day state
+
+**Wet day**:
+A day carrying enough water that its condition is a precipitating one. Decided by the total
+that fell, not by the codes the hours carried, so a day whose hours are labelled rain but which
+delivers almost no water is not a wet day. The total can only ever weaken the claim the codes
+make and never strengthen it — there is no such thing here as a wet day the codes called dry.
+_Avoid_: rain day, precipitation day
 
 **Downpour**:
 The state covering rain falling hard, whether continuously or as a violent shower. Named for
