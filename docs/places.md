@@ -161,9 +161,13 @@ offshore in the Wadden Sea, is the nearest thing and is what the three Wiedingha
 use. It runs only 15 minutes from `dagebuell` at high water, so either would be
 defensible — `osterley` wins on being the water those villages actually look at.
 
-**`suedwesthoern` is the preferred Wiedingharde source, but is not available yet.** It
-exists on BSH's *other* product, the tide calculator at `gezeiten.bsh.de`, flagged as an
-interpolated gauge. That product is not CC BY 4.0 — see the gap list below.
+**`suedwesthoern` is not usable, and this is closed rather than pending.** It exists on
+BSH's *other* product, the tide calculator at `gezeiten.bsh.de`, but as an *interpolierter
+Pegel*: its predictions are carried over from Helgoland at a fixed time offset, its table
+has **no height column at all**, and it publishes no low water. Every height on this page is
+a deviation, so a station with no per-event height cannot serve one
+([#12](https://github.com/Commander-Cody/weather-page/issues/12), verified on BSH's own
+station page). The Wiedingharde keeps `osterley`, which is a real gauge with real heights.
 
 **Langenhorn** takes `schluettsiel` as the nearest gauge, 9.4 km. `der_strand_hamburger_hallig`
 at 12.5 km is the alternative if the Hamburger Hallig shore turns out to be the coast
@@ -184,26 +188,49 @@ seaward of the barrage — so it reflects the sea, not the impounded river.
 - **`coords_land` for the smaller places is provisional.** The Wiedingharde and inland
   coordinates are estimates and should be confirmed. Treat them as approximate: the first
   estimate of Südwesthörn's position in this effort was 8 km out.
-- **Sankt Peter-Ording is not in the roster.** It has no gauge in the forecast API at all,
-  and was cut as primarily a tourist town. It *does* exist on the tide calculator as
-  `st-peter-ording_bad`, so it becomes a candidate if that product turns out to be usable.
+- **Sankt Peter-Ording is not in the roster, and no longer a candidate.** It has no gauge in
+  the forecast API at all, and was cut as primarily a tourist town. Its tide-calculator
+  station `st-peter-ording_bad` is an *interpolierter Pegel* publishing no heights
+  ([#12](https://github.com/Commander-Cody/weather-page/issues/12)), so the product being
+  usable does not make *that station* usable.
 - **Places named but not yet placed**: Ockholm, Alkersum, Süderende. Adding them needs a
   gauge decision each and a Frisian name, nothing more.
 
-## The tide calculator, if its licence permits
+## The tide calculator — answered, and not adopted
 
-`gezeiten.bsh.de` carries **39 stations in this region against the forecast API's 23**,
-including `suedwesthoern`, `st-peter-ording_bad`, `langeness_nord`, `langeness_hilligenley`,
-`rantumdamm`, `list_west`, `hoernum_west`, `nordstrandischmoor`, `holmer_siel` and
-`everschopsiel`. It offers a **curve** text file per station, which is exactly what the
-peaks-only gauges lack.
+`gezeiten.bsh.de` is BSH's other water product. It carries **36 stations in this region
+against the forecast API's 23** (the earlier figure of 39 could not be reproduced from
+BSH's own station list), and offers a **full-year astronomical curve** at 17 of them —
+exactly what the peaks-only gauges lack. Both questions this section used to hold are now
+closed.
 
-It is astronomical only — no surge, no measurement — and it arrives as a per-station,
-per-calendar-year download rather than an API, with next year's file appearing around
-August. Downloading requires accepting BSH's fee schedule for digital data and separate
-usage conditions for tide data, which is a different licence world from the forecast API's
-CC BY 4.0.
+**The licence permits it** ([#12](https://github.com/Commander-Cody/weather-page/issues/12)).
+Anlage 4 of BSH's fee schedule allows commercial republishing outright, with no fee and no
+written consent. It is not CC BY 4.0 — it is a click-through contract requiring a prescribed
+German source string on every presentation — but it is not a barrier.
 
-If those terms permit republishing, the better design is a **local astronomical curve from
-the tide calculator paired with a borrowed surge from the nearest forecast gauge** — which
-serves the pairing rule above better than either product alone. That question is open.
+**We are not taking it** ([#18](https://github.com/Commander-Cody/weather-page/issues/18),
+recorded as [ADR-0012](adr/0012-the-surge-is-interpolated-not-the-water-level.md)). Five of
+the ten peaks-only places would gain a real BSH curve — `westerland`, `wyk`, `pellworm`,
+`nordstrand` and `langenhorn` via `schluettsiel`. The other five would not: neither
+`osterley` nor `der_strand_hamburger_hallig` has a curve file, so the interpolation gets
+written regardless and no code is saved.
+
+What decided it was measuring what the curve is actually worth. Once the **surge** is
+interpolated rather than the water level (ADR-0012), the source of the astronomical line no
+longer affects the gap between the two lines — and the gap is the only thing on the chart
+anyone reads against. A real BSH curve would then improve the *shape* of an unlabelled
+dashed line and change no number on the page, in exchange for a second BSH product, a
+fixed-width Latin-1 parser in metres and year-round CET, a yearly ~23 MB fetch, an archive
+duty because BSH deletes files after two years, an unresolved `robots.txt` conflict, and a
+fourth credit line in prescribed German on a Frisian-only page.
+
+Two facts worth keeping if this is ever revisited:
+
+- **The tide calculator's high/low-water files add nothing.** Its peaks are the same
+  computation the forecast API already serves — compared across all 23 events at Westerland,
+  the two agree to the minute and the centimetre. Only the curve was ever new.
+- **The per-station JSON at `gezeiten.bsh.de/data/DE__{bshnr}_tides.json` is open** — no
+  acceptance checkbox, no `robots.txt` restriction — and carries the gauge-zero, NHN and
+  chart-datum offsets that the forecast API omits at its peaks-only stations. The page shows
+  no absolute heights, so it needs none of them today. It does **not** carry the curve.
