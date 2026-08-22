@@ -110,6 +110,14 @@ never goes stale — a series fetched hours ago is still exactly right for days 
 Mooring: `astronoomsche tide`.
 _Avoid_: predicted tide, tide table
 
+**Surge**:
+The weather-driven part of the water level — the difference between the astronomical tide
+and the water actually expected. The gap the page exists to show, and the only reason a
+storm is visible in the water lane at all. At a **peaks-only gauge** the surge is known
+only at the peaks and is **interpolated between them; the water level never is** — the
+surge is the quantity the page reconstructs, and the expected line follows from it.
+_Avoid_: storm surge (that is a warning class), correction, offset
+
 **Surge-corrected forecast**:
 The water level actually expected, astronomical tide plus the weather-driven surge. The
 gap between it and the astronomical tide is what the page exists to show. Unlike the
@@ -208,9 +216,11 @@ _Avoid_: full gauge, good gauge
 
 **Peaks-only gauge**:
 A gauge publishing high and low water times and heights but no curve. Same 5.7-day peak
-horizon as a curve gauge, but the surge correction reaches only about 18 hours — after
-which its astronomical curve is interpolated by us from the peaks. Carrying no curve also
-means carrying no observed water level at all, past or present.
+horizon as a curve gauge, but the surge correction reaches only about 18 hours. Having no
+curve, **both** its lines are drawn between known points rather than read off a series: the
+astronomical tide is interpolated by us from the peaks across the whole window, and the
+expected line is that tide plus an interpolated **surge**. Carrying no curve also means
+carrying no observed water level at all, past or present.
 _Avoid_: partial gauge, degraded gauge
 
 **Land point**:
